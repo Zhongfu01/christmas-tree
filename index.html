@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圣诞快乐</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet">
+
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Segoe UI', sans-serif; }
+        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        
+        #main-title {
+            position: absolute;
+            top: 35vh;
+            left: 50%;
+            transform: translateX(-50%) scale(0.3);
+            opacity: 0;
+            margin: 0;
+            font-family: 'Parisienne', cursive; 
+            font-size: 6rem; 
+            color: #d4af37; 
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.8), 0 0 60px rgba(212, 175, 55, 0.4), 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 20;
+            pointer-events: none; 
+            white-space: nowrap;
+            transition: all 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        #main-title.visible {
+            opacity: 1; 
+            transform: translateX(-50%) scale(1); 
+        }
+
+        #ui-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 220px;
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            z-index: 10;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        
+        h2 { margin: 0 0 5px 0; font-size: 18px; color: #d4af37; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        #hand-status {
+            font-weight: bold;
+            margin-left: 10px;
+            font-size: 14px;
+            color: #d4af37;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #d4af37;
+            transition: background 0.3s;
+        }
+        .dot.active { background: #00ff00; box-shadow: 0 0 10px #00ff00; }
+        .dot.scatter { background: #ff4d4d; box-shadow: 0 0 10px #ff4d4d; }
+
+        #input_video {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 160px;
+            height: 120px;
+            border-radius: 8px;
+            z-index: 10;
+            opacity: 0.7;
+            transform: scaleX(-1);
+            border: 2px solid #333;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #d4af37;
+            font-size: 24px;
+            z-index: 100;
+            pointer-events: none;
+        }
+    </style>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+</head>
+<body>
+
+    <div id="loading">正在初始化视觉引擎...</div>
+
+    <h1 id="main-title">Merry Christmas</h1>
+
+    <video id="input_video" playsinline></video>
+
+    <div id="ui-panel">
+        <h2>🎄 控制面板</h2>
+
+        <div class="status-indicator">
+            <div id="status-dot" class="dot"></div>
+            <span id="hand-status">默认状态：显示圣诞树</span>
+        </div>
+        
+        <p style="font-size: 11px; color: #666; margin-top: 15px; line-height: 1.6;">
+            **未检测/放松: 聚合**<br>
+            **🖐 张开: 惊喜时刻!**
+        </p>
+    </div>
+
+    <div id="canvas-container"></div>
+
+<script>
+    // --- 1. Three.js 场景初始化 ---
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x050505, 0.002);
+
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 30;
+    camera.position.y = 5;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+    // ==================================================================================
+    // --- 核心修改：双粒子系统 (数量已削减) ---
+    // ==================================================================================
+
+    // ---------------- System 1: 树叶/背景粒子 (从 28000 减至 12000) ----------------
+    const foliageCount = 12000; 
+    const foliageGeo = new THREE.BufferGeometry();
+    const foliagePos = new Float32Array(foliageCount * 3);
+    const foliageCols = new Float32Array(foliageCount * 3);
+    const foliageTarget = new Float32Array(foliageCount * 3); 
+    const foliageRandom = new Float32Array(foliageCount * 3); 
+
+    const foliagePalette = [
+        new THREE.Color("#0f5c34"), new THREE.Color("#0f5c34"), new THREE.Color("#0f5c34"),
+        new THREE.Color("#0a4a2a"), new THREE.Color("#0a4a2a"), new THREE.Color("#146b3a"),
+        new THREE.Color("#ffffff")
+    ];
+
+    for (let i = 0; i < foliageCount; i++) {
+        for(let j = 0; j < 3; j++) {
+            foliagePos[i * 3 + j] = (Math.random() - 0.5) * 100;
+            foliageRandom[i * 3 + j] = (Math.random() - 0.5) * 60;
+        }
+        const color = foliagePalette[Math.floor(Math.random() * foliagePalette.length)];
+        foliageCols[i * 3] = color.r; foliageCols[i * 3 + 1] = color.g; foliageCols[i * 3 + 2] = color.b;
+
+        const h = Math.random() * 20; 
+        const radius = (20 - h) * 0.4 * Math.random(); 
+        const angle = Math.random() * Math.PI * 2;
+        
+        foliageTarget[i * 3] = Math.cos(angle) * radius;
+        foliageTarget[i * 3 + 1] = h - 10; 
+        foliageTarget[i * 3 + 2] = Math.sin(angle) * radius;
+    }
+
+    foliageGeo.setAttribute('position', new THREE.BufferAttribute(foliagePos, 3));
+    foliageGeo.setAttribute('color', new THREE.BufferAttribute(foliageCols, 3));
+
+    const foliageMaterial = new THREE.PointsMaterial({
+        size: 0.12, 
+        vertexColors: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        transparent: true,
+        opacity: 0.6
+    });
+    const foliageParticles = new THREE.Points(foliageGeo, foliageMaterial);
+    scene.add(foliageParticles);
+
+
+    // ---------------- System 2: 装饰物粒子 (从 2500 减至 800) ----------------
+    const ornamentCount = 800; 
+    const ornamentGeo = new THREE.BufferGeometry();
+    const ornamentPos = new Float32Array(ornamentCount * 3);
+    const ornamentCols = new Float32Array(ornamentCount * 3);
+    const ornamentTarget = new Float32Array(ornamentCount * 3); 
+    const ornamentRandom = new Float32Array(ornamentCount * 3); 
+
+    const ornamentPalette = [
+        new THREE.Color("#d4af37"), // 金
+        new THREE.Color("#d4af37"),
+        new THREE.Color("#c41e3a"), // 红
+    ];
+
+    for (let i = 0; i < ornamentCount; i++) {
+        for(let j = 0; j < 3; j++) {
+            ornamentPos[i * 3 + j] = (Math.random() - 0.5) * 100;
+            ornamentRandom[i * 3 + j] = (Math.random() - 0.5) * 70; 
+        }
+        const color = ornamentPalette[Math.floor(Math.random() * ornamentPalette.length)];
+        ornamentCols[i * 3] = color.r; ornamentCols[i * 3 + 1] = color.g; ornamentCols[i * 3 + 2] = color.b;
+
+        const h = Math.random() * 20; 
+        const baseRadius = (20 - h) * 0.4;
+        const radius = baseRadius * (0.9 + Math.random() * 0.1); 
+        const angle = Math.random() * Math.PI * 2;
+        
+        ornamentTarget[i * 3] = Math.cos(angle) * radius;
+        ornamentTarget[i * 3 + 1] = h - 10; 
+        ornamentTarget[i * 3 + 2] = Math.sin(angle) * radius;
+    }
+
+    ornamentGeo.setAttribute('position', new THREE.BufferAttribute(ornamentPos, 3));
+    ornamentGeo.setAttribute('color', new THREE.BufferAttribute(ornamentCols, 3));
+
+    const ornamentMaterial = new THREE.PointsMaterial({
+        size: 0.28, 
+        vertexColors: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        transparent: true,
+        opacity: 0.9 
+    });
+    const ornamentParticles = new THREE.Points(ornamentGeo, ornamentMaterial);
+    scene.add(ornamentParticles);
+
+
+    // --- 五角星 ---
+    const starShape = new THREE.Shape();
+    const outerRadius = 0.3; const innerRadius = 0.15; const points = 5; 
+    for (let i = 0; i < points * 2; i++) {
+        const radius = i % 2 === 0 ? outerRadius : innerRadius;
+        const angle = (i / (points * 2)) * Math.PI * 2 + Math.PI / 2;
+        const x = Math.cos(angle) * radius; const y = Math.sin(angle) * radius;
+        if (i === 0) starShape.moveTo(x, y); else starShape.lineTo(x, y);
+    }
+    starShape.closePath();
+    const extrudeSettings = { steps: 1, depth: 0.1, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 3 };
+    const starGeometry = new THREE.ExtrudeGeometry(starShape, extrudeSettings);
+    starGeometry.center(); 
+    const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffd700 }); 
+    const starGroup = new THREE.Mesh(starGeometry, starMaterial);
+    const starBasePosition = new THREE.Vector3(0, 10, 0);
+    const starScatterVector = new THREE.Vector3((Math.random()-0.5)*30, Math.random()*30+20, (Math.random()-0.5)*30);
+    starGroup.position.copy(starBasePosition);
+    scene.add(starGroup);
+
+
+    // --- 3. 交互控制逻辑 ---
+    let gestureState = 'GATHER'; 
+    let explosionFactor = 0; 
+
+    const videoElement = document.getElementById('input_video');
+    const handStatus = document.getElementById('hand-status');
+    const statusDot = document.getElementById('status-dot');
+    const mainTitle = document.getElementById('main-title');
+
+    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+    hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+    hands.onResults(onResults);
+
+    const cameraUtils = new Camera(videoElement, {
+        onFrame: async () => { await hands.send({image: videoElement}); },
+        width: 320, height: 240
+    });
+    cameraUtils.start();
+
+    function onResults(results) {
+        document.getElementById('loading').style.display = 'none';
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            const landmarks = results.multiHandLandmarks[0];
+            const wrist = landmarks[0];
+            const tips = [8, 12, 16, 20]; const mcps = [5, 9, 13, 17]; 
+            let foldedFingers = 0;
+            function dist(p1, p2) { return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2)); }
+            for(let i=0; i<4; i++) {
+                if (dist(landmarks[tips[i]], wrist) < dist(landmarks[mcps[i]], wrist) * 1.6) foldedFingers++;
+            }
+            if (foldedFingers >= 3) {
+                gestureState = 'GATHER';
+                statusDot.classList.add('active'); statusDot.classList.remove('scatter');
+                handStatus.innerText = "状态: ✊ 聚合 (放松)"; handStatus.style.color = "#00ff00";
+                mainTitle.classList.remove('visible');
+            } else {
+                gestureState = 'SCATTER';
+                statusDot.classList.add('scatter'); statusDot.classList.remove('active');
+                handStatus.innerText = "状态: 🖐 扩散 (张开)"; handStatus.style.color = "#ff4d4d";
+                mainTitle.classList.add('visible');
+            }
+        } else {
+            gestureState = 'GATHER'; 
+            statusDot.classList.remove('active', 'scatter');
+            handStatus.innerText = "默认状态：显示圣诞树"; handStatus.style.color = "#d4af37";
+            mainTitle.classList.remove('visible');
+        }
+    }
+
+    // --- 4. 动画循环 ---
+    let time = 0;
+
+    function updateParticles(geometry, count, currentPos, targetPos, randomPos, factor, timeOffset) {
+        for (let i = 0; i < count; i++) {
+            const ix = i * 3; const iy = i * 3 + 1; const iz = i * 3 + 2;
+            
+            const finalX = targetPos[ix] + (randomPos[ix] * factor);
+            const finalY = targetPos[iy] + (randomPos[iy] * factor);
+            const finalZ = targetPos[iz] + (randomPos[iz] * factor);
+
+            currentPos[ix] += (finalX - currentPos[ix]) * 0.08;
+            currentPos[iy] += (finalY - currentPos[iy]) * 0.08;
+            currentPos[iz] += (finalZ - currentPos[iz]) * 0.08;
+            
+            if (factor < 0.1) currentPos[iy] += Math.sin(time + ix * timeOffset) * 0.02;
+        }
+        geometry.attributes.position.needsUpdate = true;
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        time += 0.01;
+
+        foliageParticles.rotation.y = time * 0.1;
+        ornamentParticles.rotation.y = time * 0.1; 
+        starGroup.rotation.y = time * 0.8;
+
+        let targetFactor = (gestureState === 'SCATTER') ? 1 : 0;
+        explosionFactor += (targetFactor - explosionFactor) * 0.05;
+
+        updateParticles(foliageGeo, foliageCount, foliagePos, foliageTarget, foliageRandom, explosionFactor, 0.01);
+        updateParticles(ornamentGeo, ornamentCount, ornamentPos, ornamentTarget, ornamentRandom, explosionFactor, 0.02);
+
+        const starCurrentTarget = starBasePosition.clone().lerp(starBasePosition.clone().add(starScatterVector), explosionFactor);
+        starGroup.position.lerp(starCurrentTarget, 0.08);
+        const currentScale = 1.0 * (1 - explosionFactor * 0.3);
+        starGroup.scale.set(currentScale, currentScale, currentScale);
+
+        renderer.render(scene, camera);
+    }
+
+    let mouseX = 0; let mouseY = 0;
+    document.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX - window.innerWidth / 2) * 0.01;
+        mouseY = (e.clientY - window.innerHeight / 2) * 0.01;
+        camera.position.x += (mouseX - camera.position.x) * 0.05;
+        camera.position.y += (-mouseY + 5 - camera.position.y) * 0.05;
+        camera.lookAt(0, 0, 0);
+    });
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    animate();
+</script>
+</body>
+</html>
