@@ -81,35 +81,6 @@
         .dot.active { background: #00ff00; box-shadow: 0 0 10px #00ff00; }
         .dot.scatter { background: #ff4d4d; box-shadow: 0 0 10px #ff4d4d; }
 
-        /* --- 🎵 新增：音乐按钮样式 --- */
-        #music-btn {
-            margin-top: 15px;
-            width: 100%;
-            padding: 10px 0;
-            background: transparent;
-            border: 1px solid #d4af37;
-            color: #d4af37;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            outline: none;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        #music-btn:hover {
-            background: rgba(212, 175, 55, 0.2);
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
-        }
-        #music-btn.playing {
-            background: #d4af37;
-            color: #000;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
-        }
-
         /* --- 视频 (电脑端) --- */
         #input_video {
             position: absolute;
@@ -140,6 +111,7 @@
         /* --- 📱 手机端适配修正版 --- */
         /* ========================================= */
         @media screen and (max-width: 768px) {
+            /* 1. 标题 (已修复) */
             #main-title {
                 font-size: 12vw;      
                 letter-spacing: 2px;  
@@ -149,39 +121,53 @@
                 padding: 0 10px;
             }
 
+            /* 2. 隐藏自拍视频 */
             #input_video { display: none; }
 
+            /* 3. 右上角微型面板 (修复溢出问题) */
             #ui-panel {
-                top: 15px;           
+                top: 15px;          
                 right: 15px;        
                 left: auto;         
-                bottom: auto;        
+                bottom: auto;       
                 transform: none;    
-                width: 160px;        
+                
+                /* 修改处 A: 宽度稍微加宽，给文字留空间 */
+                width: 160px;       
+                
                 padding: 12px;      
                 border-radius: 10px;
                 background: rgba(20, 20, 20, 0.6); 
                 backdrop-filter: blur(5px);
             }
 
-            h2 { font-size: 12px; margin-bottom: 2px; letter-spacing: 0; }
-            .status-indicator { margin-top: 5px; padding-top: 5px; justify-content: flex-start; }
-            .dot { width: 6px; height: 6px; } 
-            #hand-status { font-size: 10px; margin-left: 5px; }
+            h2 {
+                font-size: 12px; 
+                margin-bottom: 2px;
+                letter-spacing: 0;
+            }
 
+            .status-indicator {
+                margin-top: 5px;
+                padding-top: 5px;
+                justify-content: flex-start;
+            }
+            
+            .dot { width: 6px; height: 6px; } 
+
+            #hand-status {
+                font-size: 10px; 
+                margin-left: 5px;
+            }
+
+            /* 修改处 B: 允许说明文字换行 */
             #ui-panel p {
                 font-size: 10px !important; 
                 margin-top: 8px;
                 line-height: 1.4;
                 opacity: 0.8;
-                white-space: normal; 
-                word-wrap: break-word; 
-            }
-            
-            #music-btn {
-                padding: 6px 0;
-                font-size: 10px;
-                margin-top: 10px;
+                white-space: normal; /* 关键修改：允许换行 */
+                word-wrap: break-word; /* 确保长单词断行 */
             }
         }
     </style>
@@ -193,10 +179,6 @@
 <body>
 
     <div id="loading">正在初始化...<br><span style="font-size:14px; opacity:0.7">请允许摄像头权限</span></div>
-
-    <audio id="bgm" loop>
-        <source src="https://assets.codepen.io/2641615/christmas_music_box.mp3" type="audio/mp3">
-    </audio>
 
     <h1 id="main-title">Merry Christmas</h1>
 
@@ -213,8 +195,6 @@
         <p style="font-size: 11px; color: #ddd; margin-top: 15px; line-height: 1.6;">
             手势控制：<br>✊ 握拳 = 聚合(树)<br>🖐 张手 = 爆炸(散)
         </p>
-
-        <button id="music-btn">🎵 播放音乐</button>
     </div>
 
     <div id="canvas-container"></div>
@@ -417,30 +397,6 @@
         }
         geometry.attributes.position.needsUpdate = true;
     }
-
-    // --- 5. 🎵 音乐控制逻辑 (新增) ---
-    const bgm = document.getElementById('bgm');
-    const musicBtn = document.getElementById('music-btn');
-    let isMusicPlaying = false;
-
-    bgm.volume = 0.5; // 设置初始音量为 50%
-
-    musicBtn.addEventListener('click', () => {
-        if (isMusicPlaying) {
-            bgm.pause();
-            musicBtn.innerHTML = "🎵 播放音乐";
-            musicBtn.classList.remove('playing');
-        } else {
-            bgm.play().then(() => {
-                musicBtn.innerHTML = "🔇 暂停音乐";
-                musicBtn.classList.add('playing');
-            }).catch(e => {
-                console.log("播放失败:", e);
-                alert("播放失败，请检查浏览器权限");
-            });
-        }
-        isMusicPlaying = !isMusicPlaying;
-    });
 
     function animate() {
         requestAnimationFrame(animate);
