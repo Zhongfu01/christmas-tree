@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D 粒子圣诞树 (手机右上角修正版)</title>
+    <title>3D 粒子圣诞树 (手机右上角迷你版)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
@@ -107,7 +107,7 @@
         }
 
         /* ========================================= */
-        /* --- 📱 手机端适配 (强制右上角) --- */
+        /* --- 📱 手机端适配 (右上角迷你版) --- */
         /* ========================================= */
         @media screen and (max-width: 768px) {
             /* 1. 标题变小 */
@@ -119,57 +119,50 @@
             }
 
             /* 2. 隐藏自拍视频 */
-            #input_video { display: none !important; }
+            #input_video { display: none; }
 
-            /* 3. 右上角微型面板 (使用 !important 强制覆盖) */
+            /* 3. 右上角微型面板 */
             #ui-panel {
-                /* 强制定位到右上角 */
-                top: 10px !important;
-                right: 10px !important;
+                top: 15px;          /* 距离顶部 */
+                right: 15px;        /* 距离右侧 */
+                left: auto;         /*不仅中 */
+                bottom: auto;       /* 不在底部 */
+                transform: none;    /* 取消居中变换 */
                 
-                /* 强制取消底部和左侧定位 */
-                bottom: auto !important;
-                left: auto !important;
-                transform: none !important;
+                width: 130px;       /* 极窄宽度 */
+                padding: 10px;      /* 减少内边距 */
+                border-radius: 10px;
                 
-                /* 尺寸极小化 */
-                width: auto !important;
-                min-width: 100px;
-                max-width: 140px;
-                padding: 8px 12px;
-                border-radius: 8px;
-                
-                /* 背景更透明 */
-                background: rgba(10, 10, 10, 0.5); 
-                backdrop-filter: blur(4px);
-                border: 1px solid rgba(255,255,255,0.05);
+                background: rgba(20, 20, 20, 0.6); /* 更透明 */
+                backdrop-filter: blur(5px);
             }
 
             /* 元素极小化 */
             h2 {
-                font-size: 11px; /* 标题很小 */
+                font-size: 12px; /* 标题很小 */
                 margin-bottom: 2px;
                 letter-spacing: 0;
             }
 
             .status-indicator {
-                margin-top: 4px;
-                padding-top: 4px;
-                border-top: none; /* 去掉分割线让它更紧凑 */
-                justify-content: flex-start; 
+                margin-top: 5px;
+                padding-top: 5px;
+                justify-content: flex-start; /* 左对齐 */
             }
             
-            .dot { width: 5px; height: 5px; } 
+            .dot { width: 6px; height: 6px; } /* 小圆点 */
 
             #hand-status {
-                font-size: 10px; 
+                font-size: 10px; /* 状态文字极小 */
                 margin-left: 5px;
-                white-space: nowrap;
             }
 
-            /* 隐藏手机上的说明文字，太占地方了 */
             #ui-panel p {
-                display: none;
+                font-size: 9px !important; /* 说明文字微型 */
+                margin-top: 5px;
+                line-height: 1.2;
+                opacity: 0.8;
+                white-space: nowrap; /* 防止换行 */
             }
         }
     </style>
@@ -187,11 +180,11 @@
     <video id="input_video" playsinline></video>
 
     <div id="ui-panel">
-        <h2>🎄 圣诞树</h2>
+        <h2>🎄 控制面板</h2>
 
         <div class="status-indicator">
             <div id="status-dot" class="dot"></div>
-            <span id="hand-status">状态：显示中</span>
+            <span id="hand-status">状态：显示圣诞树</span>
         </div>
         
         <p style="font-size: 11px; color: #ddd; margin-top: 15px; line-height: 1.6;">
@@ -283,160 +276,4 @@
             ornamentRandom[i * 3 + j] = (Math.random() - 0.5) * 70; 
         }
         const color = ornamentPalette[Math.floor(Math.random() * ornamentPalette.length)];
-        ornamentCols[i * 3] = color.r; ornamentCols[i * 3 + 1] = color.g; ornamentCols[i * 3 + 2] = color.b;
-
-        const h = Math.random() * 20; 
-        const baseRadius = (20 - h) * 0.4;
-        const radius = baseRadius * (0.9 + Math.random() * 0.1); 
-        const angle = Math.random() * Math.PI * 2;
-        
-        ornamentTarget[i * 3] = Math.cos(angle) * radius;
-        ornamentTarget[i * 3 + 1] = h - 10; 
-        ornamentTarget[i * 3 + 2] = Math.sin(angle) * radius;
-    }
-
-    ornamentGeo.setAttribute('position', new THREE.BufferAttribute(ornamentPos, 3));
-    ornamentGeo.setAttribute('color', new THREE.BufferAttribute(ornamentCols, 3));
-
-    const ornamentMaterial = new THREE.PointsMaterial({
-        size: 0.28, 
-        vertexColors: true,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        transparent: true,
-        opacity: 0.9 
-    });
-    const ornamentParticles = new THREE.Points(ornamentGeo, ornamentMaterial);
-    scene.add(ornamentParticles);
-
-
-    // --- 五角星 ---
-    const starShape = new THREE.Shape();
-    const outerRadius = 0.3; const innerRadius = 0.15; const points = 5; 
-    for (let i = 0; i < points * 2; i++) {
-        const radius = i % 2 === 0 ? outerRadius : innerRadius;
-        const angle = (i / (points * 2)) * Math.PI * 2 + Math.PI / 2;
-        const x = Math.cos(angle) * radius; const y = Math.sin(angle) * radius;
-        if (i === 0) starShape.moveTo(x, y); else starShape.lineTo(x, y);
-    }
-    starShape.closePath();
-    const extrudeSettings = { steps: 1, depth: 0.1, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 3 };
-    const starGeometry = new THREE.ExtrudeGeometry(starShape, extrudeSettings);
-    starGeometry.center(); 
-    const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffd700 }); 
-    const starGroup = new THREE.Mesh(starGeometry, starMaterial);
-    const starBasePosition = new THREE.Vector3(0, 10, 0);
-    const starScatterVector = new THREE.Vector3((Math.random()-0.5)*30, Math.random()*30+20, (Math.random()-0.5)*30);
-    starGroup.position.copy(starBasePosition);
-    scene.add(starGroup);
-
-
-    // --- 3. 交互控制逻辑 ---
-    let gestureState = 'GATHER'; 
-    let explosionFactor = 0; 
-
-    const videoElement = document.getElementById('input_video');
-    const handStatus = document.getElementById('hand-status');
-    const statusDot = document.getElementById('status-dot');
-    const mainTitle = document.getElementById('main-title');
-
-    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-    hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
-    hands.onResults(onResults);
-
-    const cameraUtils = new Camera(videoElement, {
-        onFrame: async () => { await hands.send({image: videoElement}); },
-        width: 320, height: 240
-    });
-    cameraUtils.start();
-
-    function onResults(results) {
-        document.getElementById('loading').style.display = 'none';
-        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            const landmarks = results.multiHandLandmarks[0];
-            const wrist = landmarks[0];
-            const tips = [8, 12, 16, 20]; const mcps = [5, 9, 13, 17]; 
-            let foldedFingers = 0;
-            function dist(p1, p2) { return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2)); }
-            for(let i=0; i<4; i++) {
-                if (dist(landmarks[tips[i]], wrist) < dist(landmarks[mcps[i]], wrist) * 1.6) foldedFingers++;
-            }
-            if (foldedFingers >= 3) {
-                gestureState = 'GATHER';
-                statusDot.classList.add('active'); statusDot.classList.remove('scatter');
-                handStatus.innerText = "状态: 聚合"; handStatus.style.color = "#00ff00";
-                mainTitle.classList.remove('visible');
-            } else {
-                gestureState = 'SCATTER';
-                statusDot.classList.add('scatter'); statusDot.classList.remove('active');
-                handStatus.innerText = "状态: 扩散"; handStatus.style.color = "#ff4d4d";
-                mainTitle.classList.add('visible');
-            }
-        } else {
-            gestureState = 'GATHER'; 
-            statusDot.classList.remove('active', 'scatter');
-            handStatus.innerText = "状态: 聚合"; handStatus.style.color = "#d4af37";
-            mainTitle.classList.remove('visible');
-        }
-    }
-
-    // --- 4. 动画循环 ---
-    let time = 0;
-
-    function updateParticles(geometry, count, currentPos, targetPos, randomPos, factor, timeOffset) {
-        for (let i = 0; i < count; i++) {
-            const ix = i * 3; const iy = i * 3 + 1; const iz = i * 3 + 2;
-            
-            const finalX = targetPos[ix] + (randomPos[ix] * factor);
-            const finalY = targetPos[iy] + (randomPos[iy] * factor);
-            const finalZ = targetPos[iz] + (randomPos[iz] * factor);
-
-            currentPos[ix] += (finalX - currentPos[ix]) * 0.08;
-            currentPos[iy] += (finalY - currentPos[iy]) * 0.08;
-            currentPos[iz] += (finalZ - currentPos[iz]) * 0.08;
-            
-            if (factor < 0.1) currentPos[iy] += Math.sin(time + ix * timeOffset) * 0.02;
-        }
-        geometry.attributes.position.needsUpdate = true;
-    }
-
-    function animate() {
-        requestAnimationFrame(animate);
-        time += 0.01;
-
-        foliageParticles.rotation.y = time * 0.1;
-        ornamentParticles.rotation.y = time * 0.1; 
-        starGroup.rotation.y = time * 0.8;
-
-        let targetFactor = (gestureState === 'SCATTER') ? 1 : 0;
-        explosionFactor += (targetFactor - explosionFactor) * 0.05;
-
-        updateParticles(foliageGeo, foliageCount, foliagePos, foliageTarget, foliageRandom, explosionFactor, 0.01);
-        updateParticles(ornamentGeo, ornamentCount, ornamentPos, ornamentTarget, ornamentRandom, explosionFactor, 0.02);
-
-        const starCurrentTarget = starBasePosition.clone().lerp(starBasePosition.clone().add(starScatterVector), explosionFactor);
-        starGroup.position.lerp(starCurrentTarget, 0.08);
-        const currentScale = 1.0 * (1 - explosionFactor * 0.3);
-        starGroup.scale.set(currentScale, currentScale, currentScale);
-
-        renderer.render(scene, camera);
-    }
-
-    let mouseX = 0; let mouseY = 0;
-    document.addEventListener('mousemove', (e) => {
-        mouseX = (e.clientX - window.innerWidth / 2) * 0.01;
-        mouseY = (e.clientY - window.innerHeight / 2) * 0.01;
-        camera.position.x += (mouseX - camera.position.x) * 0.05;
-        camera.position.y += (-mouseY + 5 - camera.position.y) * 0.05;
-        camera.lookAt(0, 0, 0);
-    });
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    animate();
-</script>
-</body>
-</html>
+        ornamentCols[i * 3] = color.r; ornamentCols[i * 3 +
