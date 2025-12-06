@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>圣诞快乐</title>
+    <title>3D 粒子圣诞树 (手机完美适配版)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
         body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Segoe UI', sans-serif; }
         #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        /* --- 标题 (电脑端) --- */
+        /* --- 标题 (电脑端默认样式) --- */
         #main-title {
             position: absolute;
             top: 35vh;
@@ -20,8 +20,8 @@
             transform: translateX(-50%) scale(0.3);
             opacity: 0;
             margin: 0;
-            font-family: 'Pacifico', cursive; 
-            font-size: 6rem; 
+            font-family: 'Ma Shan Zheng', cursive; 
+            font-size: 6rem; /* 电脑端保持大字体 */
             color: #d4af37; 
             letter-spacing: 1rem;
             text-shadow: 0 0 30px rgba(212, 175, 55, 0.8), 0 0 60px rgba(212, 175, 55, 0.4), 2px 2px 4px rgba(0,0,0,0.8);
@@ -107,62 +107,71 @@
         }
 
         /* ========================================= */
-        /* --- 📱 手机端适配 (右上角迷你版) --- */
+        /* --- 📱 手机端适配 (修复版) --- */
         /* ========================================= */
         @media screen and (max-width: 768px) {
-            /* 1. 标题变小 */
+            /* 1. 标题防溢出修复 */
             #main-title {
-                font-size: 3rem; 
-                letter-spacing: 0.5rem;
-                width: 100%;
+                /* [关键修改] 使用 vw (视口宽度单位)，字号随屏幕宽度自动缩放 */
+                font-size: 10vw; /* 约等于屏幕宽度的1/10 */
+                letter-spacing: 2px; /* 减小间距 */
+                width: 90%; /* 限制宽度 */
+                white-space: normal; /* 允许换行，防止撑爆 */
+                word-wrap: break-word;
                 text-align: center;
+                line-height: 1.2;
             }
 
             /* 2. 隐藏自拍视频 */
-            #input_video { display: none; }
+            #input_video { display: none !important; }
 
-            /* 3. 右上角微型面板 */
+            /* 3. 右上角紧凑面板 */
             #ui-panel {
-                top: 15px;          /* 距离顶部 */
-                right: 15px;        /* 距离右侧 */
-                left: auto;         /*不仅中 */
-                bottom: auto;       /* 不在底部 */
-                transform: none;    /* 取消居中变换 */
+                top: 15px !important;
+                right: 15px !important;
+                left: auto !important;
+                bottom: auto !important;
+                transform: none !important;
                 
-                width: 130px;       /* 极窄宽度 */
-                padding: 10px;      /* 减少内边距 */
-                border-radius: 10px;
+                width: auto !important;
+                max-width: 160px;
+                padding: 8px 12px;
                 
-                background: rgba(20, 20, 20, 0.6); /* 更透明 */
+                background: rgba(20, 20, 20, 0.75); 
                 backdrop-filter: blur(5px);
+                border-radius: 12px;
+                text-align: center;
             }
 
-            /* 元素极小化 */
             h2 {
-                font-size: 12px; /* 标题很小 */
-                margin-bottom: 2px;
+                font-size: 13px; 
+                margin: 0;
                 letter-spacing: 0;
             }
 
             .status-indicator {
-                margin-top: 5px;
-                padding-top: 5px;
-                justify-content: flex-start; /* 左对齐 */
+                margin-top: 4px;
+                padding-top: 4px;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                justify-content: center;
             }
             
-            .dot { width: 6px; height: 6px; } /* 小圆点 */
+            .dot { width: 6px; height: 6px; } 
 
             #hand-status {
-                font-size: 10px; /* 状态文字极小 */
+                font-size: 11px; 
                 margin-left: 5px;
+                white-space: nowrap;
             }
 
+            /* 紧凑显示的提示文字 */
             #ui-panel p {
-                font-size: 9px !important; /* 说明文字微型 */
-                margin-top: 5px;
-                line-height: 1.2;
-                opacity: 0.8;
-                white-space: nowrap; /* 防止换行 */
+                display: block !important;
+                font-size: 10px !important;
+                margin-top: 4px !important;
+                line-height: 1.3 !important;
+                color: #ccc;
+                opacity: 0.9;
             }
         }
     </style>
@@ -175,7 +184,7 @@
 
     <div id="loading">正在初始化...<br><span style="font-size:14px; opacity:0.7">请允许摄像头权限</span></div>
 
-    <h1 id="main-title">Merry Christmas</h1>
+    <h1 id="main-title">圣诞快乐</h1>
 
     <video id="input_video" playsinline></video>
 
@@ -188,7 +197,8 @@
         </div>
         
         <p style="font-size: 11px; color: #ddd; margin-top: 15px; line-height: 1.6;">
-            手面对摄像头 -> 握拳=树 | 张手=散开
+            手面对摄像头<br>
+            握拳=树 | 张手=散开
         </p>
     </div>
 
@@ -208,7 +218,7 @@
     renderer.setPixelRatio(window.devicePixelRatio);
     document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-    // --- 2. 粒子系统 (双系统：叶子 + 装饰) ---
+    // --- 2. 粒子系统 ---
     
     // System 1: 树叶 (12000)
     const foliageCount = 12000; 
@@ -357,12 +367,12 @@
             if (foldedFingers >= 3) {
                 gestureState = 'GATHER';
                 statusDot.classList.add('active'); statusDot.classList.remove('scatter');
-                handStatus.innerText = "状态: ✊ 聚合"; handStatus.style.color = "#00ff00";
+                handStatus.innerText = "状态: 聚合"; handStatus.style.color = "#00ff00";
                 mainTitle.classList.remove('visible');
             } else {
                 gestureState = 'SCATTER';
                 statusDot.classList.add('scatter'); statusDot.classList.remove('active');
-                handStatus.innerText = "状态: 🖐 扩散"; handStatus.style.color = "#ff4d4d";
+                handStatus.innerText = "状态: 扩散"; handStatus.style.color = "#ff4d4d";
                 mainTitle.classList.add('visible');
             }
         } else {
