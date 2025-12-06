@@ -108,41 +108,41 @@
         }
 
         /* ========================================= */
-        /* --- 📱 手机端适配 (右上角迷你版) --- */
+        /* --- 📱 手机端适配修正版 --- */
         /* ========================================= */
         @media screen and (max-width: 768px) {
-            /* 1. 标题变小 - 使用vw单位自适应 */
+            /* 1. 标题 (已修复) */
             #main-title {
-                font-size: 12vw;      /* 修改处：改为视口宽度的12%，确保不超出屏幕 */
-                letter-spacing: 2px;  /* 修改处：大幅减小字间距 */
+                font-size: 12vw;      
+                letter-spacing: 2px;  
                 width: 100%;
                 text-align: center;
-                box-sizing: border-box; /* 防止padding撑大 */
+                box-sizing: border-box; 
                 padding: 0 10px;
             }
 
             /* 2. 隐藏自拍视频 */
             #input_video { display: none; }
 
-            /* 3. 右上角微型面板 */
+            /* 3. 右上角微型面板 (修复溢出问题) */
             #ui-panel {
-                top: 15px;          /* 距离顶部 */
-                right: 15px;        /* 距离右侧 */
-                left: auto;         /* 不仅中 */
-                bottom: auto;       /* 不在底部 */
-                transform: none;    /* 取消居中变换 */
+                top: 15px;          
+                right: 15px;        
+                left: auto;         
+                bottom: auto;       
+                transform: none;    
                 
-                width: 130px;       /* 极窄宽度 */
-                padding: 10px;      /* 减少内边距 */
+                /* 修改处 A: 宽度稍微加宽，给文字留空间 */
+                width: 160px;       
+                
+                padding: 12px;      
                 border-radius: 10px;
-                
-                background: rgba(20, 20, 20, 0.6); /* 更透明 */
+                background: rgba(20, 20, 20, 0.6); 
                 backdrop-filter: blur(5px);
             }
 
-            /* 元素极小化 */
             h2 {
-                font-size: 12px; /* 标题很小 */
+                font-size: 12px; 
                 margin-bottom: 2px;
                 letter-spacing: 0;
             }
@@ -150,22 +150,24 @@
             .status-indicator {
                 margin-top: 5px;
                 padding-top: 5px;
-                justify-content: flex-start; /* 左对齐 */
+                justify-content: flex-start;
             }
             
-            .dot { width: 6px; height: 6px; } /* 小圆点 */
+            .dot { width: 6px; height: 6px; } 
 
             #hand-status {
-                font-size: 10px; /* 状态文字极小 */
+                font-size: 10px; 
                 margin-left: 5px;
             }
 
+            /* 修改处 B: 允许说明文字换行 */
             #ui-panel p {
-                font-size: 9px !important; /* 说明文字微型 */
-                margin-top: 5px;
-                line-height: 1.2;
+                font-size: 10px !important; 
+                margin-top: 8px;
+                line-height: 1.4;
                 opacity: 0.8;
-                white-space: nowrap; /* 防止换行 */
+                white-space: normal; /* 关键修改：允许换行 */
+                word-wrap: break-word; /* 确保长单词断行 */
             }
         }
     </style>
@@ -191,7 +193,7 @@
         </div>
         
         <p style="font-size: 11px; color: #ddd; margin-top: 15px; line-height: 1.6;">
-            手面对摄像头 -> 握拳=树 | 张手=散开
+            手势控制：<br>✊ 握拳 = 聚合(树)<br>🖐 张手 = 爆炸(散)
         </p>
     </div>
 
