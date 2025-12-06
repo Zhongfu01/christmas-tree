@@ -81,35 +81,6 @@
         .dot.active { background: #00ff00; box-shadow: 0 0 10px #00ff00; }
         .dot.scatter { background: #ff4d4d; box-shadow: 0 0 10px #ff4d4d; }
 
-        /* --- 🎵 音乐按钮样式 --- */
-        #music-btn {
-            margin-top: 15px;
-            width: 100%;
-            padding: 10px 0;
-            background: transparent;
-            border: 1px solid #d4af37;
-            color: #d4af37;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            outline: none;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        #music-btn:hover {
-            background: rgba(212, 175, 55, 0.2);
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
-        }
-        #music-btn.playing {
-            background: #d4af37;
-            color: #000;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
-        }
-
         /* --- 视频 (电脑端) --- */
         #input_video {
             position: absolute;
@@ -177,12 +148,6 @@
                 white-space: normal; 
                 word-wrap: break-word; 
             }
-            
-            #music-btn {
-                padding: 6px 0;
-                font-size: 10px;
-                margin-top: 10px;
-            }
         }
     </style>
     
@@ -193,10 +158,6 @@
 <body>
 
     <div id="loading">正在初始化...<br><span style="font-size:14px; opacity:0.7">请允许摄像头权限</span></div>
-
-    <audio id="bgm" loop>
-        <source src="https://assets.codepen.io/2641615/christmas_music_box.mp3" type="audio/mp3">
-    </audio>
 
     <h1 id="main-title">Merry Christmas</h1>
 
@@ -213,8 +174,6 @@
         <p style="font-size: 11px; color: #ddd; margin-top: 15px; line-height: 1.6;">
             手势控制：<br>✊ 握拳 = 聚合(树)<br>🖐 张手 = 爆炸(散)
         </p>
-
-        <button id="music-btn">🎵 播放音乐</button>
     </div>
 
     <div id="canvas-container"></div>
@@ -349,16 +308,15 @@
     scene.add(starGroup);
 
 
-    // --- 🕸️ 地面网格 (新增) ---
-    // 浅灰色网格，增加空间感
+    // --- 🕸️ 地面网格 ---
     const gridHelper = new THREE.GridHelper(100, 40, 0x444444, 0x111111); 
-    gridHelper.position.y = -10; // 放在树的底部
+    gridHelper.position.y = -10; 
     gridHelper.material.opacity = 0.2; 
     gridHelper.material.transparent = true;
     scene.add(gridHelper);
 
 
-    // --- 🎁 礼物盒子 (霓虹线框风格 - 新增) ---
+    // --- 🎁 礼物盒子 (霓虹线框风格) ---
     const boxGroup = new THREE.Group();
     scene.add(boxGroup);
 
@@ -409,7 +367,7 @@
             new THREE.Vector3(0, h/2, -d/2), new THREE.Vector3(0, -h/2, -d/2)
         ]);
         const ribbon = new THREE.LineSegments(ribbonGeo, material);
-        ribbon.scale.set(1.02, 1.02, 1.02); // 稍微比盒子大一点点
+        ribbon.scale.set(1.02, 1.02, 1.02); 
         box.add(ribbon);
 
         boxGroup.add(box);
@@ -485,30 +443,6 @@
         geometry.attributes.position.needsUpdate = true;
     }
 
-    // --- 5. 🎵 音乐控制逻辑 ---
-    const bgm = document.getElementById('bgm');
-    const musicBtn = document.getElementById('music-btn');
-    let isMusicPlaying = false;
-
-    bgm.volume = 0.5; // 设置初始音量为 50%
-
-    musicBtn.addEventListener('click', () => {
-        if (isMusicPlaying) {
-            bgm.pause();
-            musicBtn.innerHTML = "🎵 播放音乐";
-            musicBtn.classList.remove('playing');
-        } else {
-            bgm.play().then(() => {
-                musicBtn.innerHTML = "🔇 暂停音乐";
-                musicBtn.classList.add('playing');
-            }).catch(e => {
-                console.log("播放失败:", e);
-                alert("播放失败，请检查浏览器权限");
-            });
-        }
-        isMusicPlaying = !isMusicPlaying;
-    });
-
     function animate() {
         requestAnimationFrame(animate);
         time += 0.01;
@@ -518,7 +452,7 @@
         ornamentParticles.rotation.y = time * 0.1; 
         starGroup.rotation.y = time * 0.8;
         
-        // 新增：让礼物盒也跟着旋转
+        // 礼物盒跟着旋转
         boxGroup.rotation.y = time * 0.1; 
 
         let targetFactor = (gestureState === 'SCATTER') ? 1 : 0;
