@@ -13,7 +13,7 @@
         body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Segoe UI', sans-serif; }
         #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        /* --- 标题 (电脑端) --- */
+        /* --- 标题 --- */
         #main-title {
             position: absolute;
             top: 35vh;
@@ -37,7 +37,7 @@
             transform: translateX(-50%) scale(1); 
         }
 
-        /* --- UI 面板 (电脑端默认样式) --- */
+        /* --- UI 面板 --- */
         #ui-panel {
             position: absolute;
             top: 20px;
@@ -81,7 +81,7 @@
         .dot.active { background: #00ff00; box-shadow: 0 0 10px #00ff00; }
         .dot.scatter { background: #ff4d4d; box-shadow: 0 0 10px #ff4d4d; }
 
-        /* --- 视频 (电脑端) --- */
+        /* --- 视频 --- */
         #input_video {
             position: absolute;
             bottom: 20px;
@@ -108,16 +108,16 @@
         }
 
         /* ========================================= */
-        /* --- 📱 手机端适配修正版 --- */
+        /* --- 📱 手机端适配 --- */
         /* ========================================= */
         @media screen and (max-width: 768px) {
             #main-title {
                 font-size: 12vw;      
                 letter-spacing: 2px;  
-                width: 100%;
-                text-align: center;
-                box-sizing: border-box; 
                 padding: 0 10px;
+                text-align: center;
+                width: 100%;
+                box-sizing: border-box;
             }
 
             #input_video { display: none; }
@@ -125,9 +125,6 @@
             #ui-panel {
                 top: 15px;           
                 right: 15px;        
-                left: auto;         
-                bottom: auto;        
-                transform: none;    
                 width: 160px;        
                 padding: 12px;      
                 border-radius: 10px;
@@ -135,19 +132,11 @@
                 backdrop-filter: blur(5px);
             }
 
-            h2 { font-size: 12px; margin-bottom: 2px; letter-spacing: 0; }
-            .status-indicator { margin-top: 5px; padding-top: 5px; justify-content: flex-start; }
+            h2 { font-size: 12px; margin-bottom: 2px; }
+            .status-indicator { margin-top: 5px; padding-top: 5px; }
             .dot { width: 6px; height: 6px; } 
             #hand-status { font-size: 10px; margin-left: 5px; }
-
-            #ui-panel p {
-                font-size: 10px !important; 
-                margin-top: 8px;
-                line-height: 1.4;
-                opacity: 0.8;
-                white-space: normal; 
-                word-wrap: break-word; 
-            }
+            #ui-panel p { font-size: 10px !important; margin-top: 8px; line-height: 1.4; white-space: normal; word-wrap: break-word; }
         }
     </style>
     
@@ -194,7 +183,7 @@
 
     // --- 2. 粒子系统 (双系统：叶子 + 装饰) ---
     
-    // System 1: 树叶 (12000)
+    // System 1: 树叶
     const foliageCount = 12000; 
     const foliageGeo = new THREE.BufferGeometry();
     const foliagePos = new Float32Array(foliageCount * 3);
@@ -240,7 +229,7 @@
     scene.add(foliageParticles);
 
 
-    // System 2: 装饰物 (800)
+    // System 2: 装饰物
     const ornamentCount = 800; 
     const ornamentGeo = new THREE.BufferGeometry();
     const ornamentPos = new Float32Array(ornamentCount * 3);
@@ -297,204 +286,4 @@
         if (i === 0) starShape.moveTo(x, y); else starShape.lineTo(x, y);
     }
     starShape.closePath();
-    const extrudeSettings = { steps: 1, depth: 0.1, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 3 };
-    const starGeometry = new THREE.ExtrudeGeometry(starShape, extrudeSettings);
-    starGeometry.center(); 
-    const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffd700 }); 
-    const starGroup = new THREE.Mesh(starGeometry, starMaterial);
-    const starBasePosition = new THREE.Vector3(0, 10, 0);
-    const starScatterVector = new THREE.Vector3((Math.random()-0.5)*30, Math.random()*30+20, (Math.random()-0.5)*30);
-    starGroup.position.copy(starBasePosition);
-    scene.add(starGroup);
-
-
-    // --- 🕸️ 地面网格 ---
-    const gridHelper = new THREE.GridHelper(100, 40, 0x444444, 0x111111); 
-    gridHelper.position.y = -10; 
-    gridHelper.material.opacity = 0.2; 
-    gridHelper.material.transparent = true;
-    scene.add(gridHelper);
-
-
-    // --- 🎁 礼物盒子 (实心全息风格) ---
-    const boxGroup = new THREE.Group();
-    scene.add(boxGroup);
-
-    const boxColors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff]; 
-    const boxCount = 12; 
-
-    for (let i = 0; i < boxCount; i++) {
-        // 随机尺寸
-        const w = 1.2 + Math.random() * 1.5; 
-        const h = 1.2 + Math.random() * 1.5; 
-        const d = 1.2 + Math.random() * 1.5; 
-        
-        const geometry = new THREE.BoxGeometry(w, h, d);
-        const color = boxColors[Math.floor(Math.random() * boxColors.length)];
-
-        // 1. 创建半透明实心内部 (增加体积感)
-        const solidMaterial = new THREE.MeshBasicMaterial({
-            color: color,
-            transparent: true,
-            opacity: 0.15, // 稍微有点颜色，不至于太空
-            blending: THREE.AdditiveBlending, // 叠加发光效果
-            side: THREE.DoubleSide
-        });
-        const solidBox = new THREE.Mesh(geometry, solidMaterial);
-
-        // 2. 创建高亮线框 (保持轮廓清晰)
-        const edges = new THREE.EdgesGeometry(geometry); 
-        const lineMaterial = new THREE.LineBasicMaterial({ 
-            color: color,
-            transparent: true,
-            opacity: 0.8, 
-            linewidth: 1 
-        });
-        const wireframe = new THREE.LineSegments(edges, lineMaterial);
-        solidBox.add(wireframe); // 把线框作为子对象加到实心盒子上
-
-        // 随机位置
-        const angle = Math.random() * Math.PI * 2; 
-        const radius = 5 + Math.random() * 7; 
-        
-        solidBox.position.x = Math.cos(angle) * radius;
-        solidBox.position.z = Math.sin(angle) * radius;
-        solidBox.position.y = -10 + (h / 2); 
-
-        // 随机旋转
-        solidBox.rotation.y = Math.random() * Math.PI;
-
-        // 🎀 丝带也改成稍微实心一点的带子（用平面模拟）
-        // 为了简单且不增加几何负担，这里依旧保留线框丝带，但稍微加亮
-        const ribbonGeo = new THREE.BufferGeometry().setFromPoints([
-            new THREE.Vector3(-w/2, h/2, 0), new THREE.Vector3(w/2, h/2, 0),
-            new THREE.Vector3(0, h/2, -d/2), new THREE.Vector3(0, h/2, d/2),
-            new THREE.Vector3(-w/2, -h/2, 0), new THREE.Vector3(w/2, -h/2, 0),
-            new THREE.Vector3(0, -h/2, -d/2), new THREE.Vector3(0, -h/2, d/2),
-            new THREE.Vector3(-w/2, h/2, 0), new THREE.Vector3(-w/2, -h/2, 0),
-            new THREE.Vector3(w/2, h/2, 0), new THREE.Vector3(w/2, -h/2, 0),
-            new THREE.Vector3(0, h/2, d/2), new THREE.Vector3(0, -h/2, d/2),
-            new THREE.Vector3(0, h/2, -d/2), new THREE.Vector3(0, -h/2, -d/2)
-        ]);
-        const ribbonMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 });
-        const ribbon = new THREE.LineSegments(ribbonGeo, ribbonMaterial);
-        ribbon.scale.set(1.02, 1.02, 1.02); 
-        solidBox.add(ribbon);
-
-        boxGroup.add(solidBox);
-    }
-
-
-    // --- 3. 交互控制逻辑 ---
-    let gestureState = 'GATHER'; 
-    let explosionFactor = 0; 
-
-    const videoElement = document.getElementById('input_video');
-    const handStatus = document.getElementById('hand-status');
-    const statusDot = document.getElementById('status-dot');
-    const mainTitle = document.getElementById('main-title');
-
-    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-    hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
-    hands.onResults(onResults);
-
-    const cameraUtils = new Camera(videoElement, {
-        onFrame: async () => { await hands.send({image: videoElement}); },
-        width: 320, height: 240
-    });
-    cameraUtils.start();
-
-    function onResults(results) {
-        document.getElementById('loading').style.display = 'none';
-        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            const landmarks = results.multiHandLandmarks[0];
-            const wrist = landmarks[0];
-            const tips = [8, 12, 16, 20]; const mcps = [5, 9, 13, 17]; 
-            let foldedFingers = 0;
-            function dist(p1, p2) { return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2)); }
-            for(let i=0; i<4; i++) {
-                if (dist(landmarks[tips[i]], wrist) < dist(landmarks[mcps[i]], wrist) * 1.6) foldedFingers++;
-            }
-            if (foldedFingers >= 3) {
-                gestureState = 'GATHER';
-                statusDot.classList.add('active'); statusDot.classList.remove('scatter');
-                handStatus.innerText = "状态: ✊ 聚合"; handStatus.style.color = "#00ff00";
-                mainTitle.classList.remove('visible');
-            } else {
-                gestureState = 'SCATTER';
-                statusDot.classList.add('scatter'); statusDot.classList.remove('active');
-                handStatus.innerText = "状态: 🖐 扩散"; handStatus.style.color = "#ff4d4d";
-                mainTitle.classList.add('visible');
-            }
-        } else {
-            gestureState = 'GATHER'; 
-            statusDot.classList.remove('active', 'scatter');
-            handStatus.innerText = "默认状态"; handStatus.style.color = "#d4af37";
-            mainTitle.classList.remove('visible');
-        }
-    }
-
-    // --- 4. 动画循环 ---
-    let time = 0;
-
-    function updateParticles(geometry, count, currentPos, targetPos, randomPos, factor, timeOffset) {
-        for (let i = 0; i < count; i++) {
-            const ix = i * 3; const iy = i * 3 + 1; const iz = i * 3 + 2;
-            
-            const finalX = targetPos[ix] + (randomPos[ix] * factor);
-            const finalY = targetPos[iy] + (randomPos[iy] * factor);
-            const finalZ = targetPos[iz] + (randomPos[iz] * factor);
-
-            currentPos[ix] += (finalX - currentPos[ix]) * 0.08;
-            currentPos[iy] += (finalY - currentPos[iy]) * 0.08;
-            currentPos[iz] += (finalZ - currentPos[iz]) * 0.08;
-            
-            if (factor < 0.1) currentPos[iy] += Math.sin(time + ix * timeOffset) * 0.02;
-        }
-        geometry.attributes.position.needsUpdate = true;
-    }
-
-    function animate() {
-        requestAnimationFrame(animate);
-        time += 0.01;
-
-        // 让树、礼物和星星一起旋转
-        foliageParticles.rotation.y = time * 0.1;
-        ornamentParticles.rotation.y = time * 0.1; 
-        starGroup.rotation.y = time * 0.8;
-        
-        // 礼物盒跟着旋转
-        boxGroup.rotation.y = time * 0.1; 
-
-        let targetFactor = (gestureState === 'SCATTER') ? 1 : 0;
-        explosionFactor += (targetFactor - explosionFactor) * 0.05;
-
-        updateParticles(foliageGeo, foliageCount, foliagePos, foliageTarget, foliageRandom, explosionFactor, 0.01);
-        updateParticles(ornamentGeo, ornamentCount, ornamentPos, ornamentTarget, ornamentRandom, explosionFactor, 0.02);
-
-        const starCurrentTarget = starBasePosition.clone().lerp(starBasePosition.clone().add(starScatterVector), explosionFactor);
-        starGroup.position.lerp(starCurrentTarget, 0.08);
-        const currentScale = 1.0 * (1 - explosionFactor * 0.3);
-        starGroup.scale.set(currentScale, currentScale, currentScale);
-
-        renderer.render(scene, camera);
-    }
-
-    let mouseX = 0; let mouseY = 0;
-    document.addEventListener('mousemove', (e) => {
-        mouseX = (e.clientX - window.innerWidth / 2) * 0.01;
-        mouseY = (e.clientY - window.innerHeight / 2) * 0.01;
-        camera.position.x += (mouseX - camera.position.x) * 0.05;
-        camera.position.y += (-mouseY + 5 - camera.position.y) * 0.05;
-        camera.lookAt(0, 0, 0);
-    });
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    animate();
-</script>
-</body>
-</html>
+    const extrudeSettings = { steps: 1, depth: 0.1, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0
