@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D 粒子圣诞树 (手机精致迷你版)</title>
+    <title>3D 粒子圣诞树 (手机右上角修正版)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
@@ -36,7 +36,7 @@
             transform: translateX(-50%) scale(1); 
         }
 
-        /* --- UI 面板 (电脑端默认) --- */
+        /* --- UI 面板 (电脑端默认样式) --- */
         #ui-panel {
             position: absolute;
             top: 20px;
@@ -50,6 +50,7 @@
             color: white;
             z-index: 10;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
         }
         
         h2 { margin: 0 0 5px 0; font-size: 18px; color: #d4af37; text-transform: uppercase; letter-spacing: 1px; }
@@ -106,7 +107,7 @@
         }
 
         /* ========================================= */
-        /* --- 📱 手机端适配 (迷你化面板) --- */
+        /* --- 📱 手机端适配 (强制右上角) --- */
         /* ========================================= */
         @media screen and (max-width: 768px) {
             /* 1. 标题变小 */
@@ -118,51 +119,57 @@
             }
 
             /* 2. 隐藏自拍视频 */
-            #input_video {
-                display: none; 
-            }
+            #input_video { display: none !important; }
 
-            /* 3. 迷你 UI 面板 */
+            /* 3. 右上角微型面板 (使用 !important 强制覆盖) */
             #ui-panel {
-                top: auto;
-                bottom: 20px;     /* 离底部近一点 */
-                left: 50%;
-                right: auto;
-                transform: translateX(-50%);
+                /* 强制定位到右上角 */
+                top: 10px !important;
+                right: 10px !important;
                 
-                /* [修改] 尺寸更紧凑 */
-                width: auto;      /* 宽度随内容 */
-                min-width: 200px; /* 最小宽度 */
-                max-width: 90%;
-                padding: 10px 15px; /* 减少内边距 */
+                /* 强制取消底部和左侧定位 */
+                bottom: auto !important;
+                left: auto !important;
+                transform: none !important;
                 
-                /* [修改] 背景更透明 */
-                background: rgba(20, 20, 20, 0.7); 
+                /* 尺寸极小化 */
+                width: auto !important;
+                min-width: 100px;
+                max-width: 140px;
+                padding: 8px 12px;
+                border-radius: 8px;
                 
-                text-align: center;
+                /* 背景更透明 */
+                background: rgba(10, 10, 10, 0.5); 
+                backdrop-filter: blur(4px);
+                border: 1px solid rgba(255,255,255,0.05);
             }
 
-            /* 面板内元素缩小 */
+            /* 元素极小化 */
             h2 {
-                font-size: 14px; /* 标题变小 */
+                font-size: 11px; /* 标题很小 */
                 margin-bottom: 2px;
+                letter-spacing: 0;
             }
 
             .status-indicator {
-                margin-top: 8px;
-                padding-top: 8px;
-                justify-content: center;
+                margin-top: 4px;
+                padding-top: 4px;
+                border-top: none; /* 去掉分割线让它更紧凑 */
+                justify-content: flex-start; 
             }
+            
+            .dot { width: 5px; height: 5px; } 
 
             #hand-status {
-                font-size: 12px; /* 状态文字变小 */
+                font-size: 10px; 
+                margin-left: 5px;
+                white-space: nowrap;
             }
 
+            /* 隐藏手机上的说明文字，太占地方了 */
             #ui-panel p {
-                font-size: 10px !important; /* 说明文字变极小 */
-                margin-top: 8px;
-                line-height: 1.4;
-                opacity: 0.8;
+                display: none;
             }
         }
     </style>
@@ -180,11 +187,11 @@
     <video id="input_video" playsinline></video>
 
     <div id="ui-panel">
-        <h2>🎄 控制面板</h2>
+        <h2>🎄 圣诞树</h2>
 
         <div class="status-indicator">
             <div id="status-dot" class="dot"></div>
-            <span id="hand-status">状态：显示圣诞树</span>
+            <span id="hand-status">状态：显示中</span>
         </div>
         
         <p style="font-size: 11px; color: #ddd; margin-top: 15px; line-height: 1.6;">
@@ -357,18 +364,18 @@
             if (foldedFingers >= 3) {
                 gestureState = 'GATHER';
                 statusDot.classList.add('active'); statusDot.classList.remove('scatter');
-                handStatus.innerText = "状态: ✊ 聚合"; handStatus.style.color = "#00ff00";
+                handStatus.innerText = "状态: 聚合"; handStatus.style.color = "#00ff00";
                 mainTitle.classList.remove('visible');
             } else {
                 gestureState = 'SCATTER';
                 statusDot.classList.add('scatter'); statusDot.classList.remove('active');
-                handStatus.innerText = "状态: 🖐 扩散"; handStatus.style.color = "#ff4d4d";
+                handStatus.innerText = "状态: 扩散"; handStatus.style.color = "#ff4d4d";
                 mainTitle.classList.add('visible');
             }
         } else {
             gestureState = 'GATHER'; 
             statusDot.classList.remove('active', 'scatter');
-            handStatus.innerText = "默认状态"; handStatus.style.color = "#d4af37";
+            handStatus.innerText = "状态: 聚合"; handStatus.style.color = "#d4af37";
             mainTitle.classList.remove('visible');
         }
     }
