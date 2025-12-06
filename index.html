@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D 粒子圣诞树 (手机右上角迷你版)</title>
+    <title>3D 粒子圣诞树 (手机最终完美版)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
@@ -107,7 +107,7 @@
         }
 
         /* ========================================= */
-        /* --- 📱 手机端适配 (右上角迷你版) --- */
+        /* --- 📱 手机端适配 (紧凑信息版) --- */
         /* ========================================= */
         @media screen and (max-width: 768px) {
             /* 1. 标题变小 */
@@ -119,50 +119,59 @@
             }
 
             /* 2. 隐藏自拍视频 */
-            #input_video { display: none; }
+            #input_video { display: none !important; }
 
-            /* 3. 右上角微型面板 */
+            /* 3. 右上角紧凑面板 */
             #ui-panel {
-                top: 15px;          /* 距离顶部 */
-                right: 15px;        /* 距离右侧 */
-                left: auto;         /*不仅中 */
-                bottom: auto;       /* 不在底部 */
-                transform: none;    /* 取消居中变换 */
+                top: 15px !important;
+                right: 15px !important;
+                bottom: auto !important;
+                left: auto !important;
+                transform: none !important;
                 
-                width: 130px;       /* 极窄宽度 */
-                padding: 10px;      /* 减少内边距 */
-                border-radius: 10px;
+                /* 稍微宽一点以容纳文字，但依然很小 */
+                width: auto !important;
+                min-width: 150px; 
                 
-                background: rgba(20, 20, 20, 0.6); /* 更透明 */
+                /* [关键修改] 极小的内边距，实现紧凑感 */
+                padding: 10px 12px; 
+                
+                border-radius: 12px;
+                background: rgba(20, 20, 20, 0.7); 
                 backdrop-filter: blur(5px);
+                border: 1px solid rgba(255,255,255,0.08);
             }
 
-            /* 元素极小化 */
+            /* 标题紧凑化 */
             h2 {
-                font-size: 12px; /* 标题很小 */
-                margin-bottom: 2px;
+                font-size: 13px; 
+                margin-bottom: 0px; /* 去掉下边距 */
                 letter-spacing: 0;
             }
 
+            /* 状态条紧凑化 */
             .status-indicator {
-                margin-top: 5px;
-                padding-top: 5px;
-                justify-content: flex-start; /* 左对齐 */
+                margin-top: 5px;   /* 极小的间距 */
+                padding-top: 5px;  /* 极小的间距 */
+                justify-content: flex-start;
             }
             
-            .dot { width: 6px; height: 6px; } /* 小圆点 */
+            .dot { width: 6px; height: 6px; } 
 
             #hand-status {
-                font-size: 10px; /* 状态文字极小 */
-                margin-left: 5px;
+                font-size: 11px; 
+                margin-left: 6px;
+                white-space: nowrap;
             }
 
+            /* [恢复显示] 说明文字，但是做得很紧凑 */
             #ui-panel p {
-                font-size: 9px !important; /* 说明文字微型 */
-                margin-top: 5px;
-                line-height: 1.2;
-                opacity: 0.8;
-                white-space: nowrap; /* 防止换行 */
+                display: block !important; /* 恢复显示 */
+                font-size: 10px !important; 
+                margin-top: 6px;    /* 紧凑间距 */
+                line-height: 1.3;
+                color: #ccc;
+                white-space: nowrap;
             }
         }
     </style>
@@ -184,11 +193,12 @@
 
         <div class="status-indicator">
             <div id="status-dot" class="dot"></div>
-            <span id="hand-status">状态：显示圣诞树</span>
+            <span id="hand-status">状态：树</span>
         </div>
         
-        <p style="font-size: 11px; color: #ddd; margin-top: 15px; line-height: 1.6;">
-            放松=树 | 张手=散开
+        <p>
+            放松手掌 = 聚合<br>
+            用力张开 = 惊喜
         </p>
     </div>
 
@@ -208,7 +218,7 @@
     renderer.setPixelRatio(window.devicePixelRatio);
     document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-    // --- 2. 粒子系统 (双系统：叶子 + 装饰) ---
+    // --- 2. 粒子系统 (12000叶子 + 800装饰) ---
     
     // System 1: 树叶 (12000)
     const foliageCount = 12000; 
@@ -357,18 +367,18 @@
             if (foldedFingers >= 3) {
                 gestureState = 'GATHER';
                 statusDot.classList.add('active'); statusDot.classList.remove('scatter');
-                handStatus.innerText = "状态: ✊ 聚合"; handStatus.style.color = "#00ff00";
+                handStatus.innerText = "状态: 聚合"; handStatus.style.color = "#00ff00";
                 mainTitle.classList.remove('visible');
             } else {
                 gestureState = 'SCATTER';
                 statusDot.classList.add('scatter'); statusDot.classList.remove('active');
-                handStatus.innerText = "状态: 🖐 扩散"; handStatus.style.color = "#ff4d4d";
+                handStatus.innerText = "状态: 扩散"; handStatus.style.color = "#ff4d4d";
                 mainTitle.classList.add('visible');
             }
         } else {
             gestureState = 'GATHER'; 
             statusDot.classList.remove('active', 'scatter');
-            handStatus.innerText = "默认状态"; handStatus.style.color = "#d4af37";
+            handStatus.innerText = "状态: 聚合"; handStatus.style.color = "#d4af37";
             mainTitle.classList.remove('visible');
         }
     }
