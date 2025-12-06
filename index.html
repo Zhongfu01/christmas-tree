@@ -316,12 +316,12 @@
     scene.add(gridHelper);
 
 
-    // --- 🎁 礼物盒子 (霓虹线框风格) ---
+    // --- 🎁 礼物盒子 (实心全息风格) ---
     const boxGroup = new THREE.Group();
     scene.add(boxGroup);
 
-    const boxColors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff]; // 红绿蓝黄紫青
-    const boxCount = 12; // 盒子数量
+    const boxColors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff]; 
+    const boxCount = 12; 
 
     for (let i = 0; i < boxCount; i++) {
         // 随机尺寸
@@ -329,33 +329,43 @@
         const h = 1.2 + Math.random() * 1.5; 
         const d = 1.2 + Math.random() * 1.5; 
         
-        // 创建线框几何体
         const geometry = new THREE.BoxGeometry(w, h, d);
-        const edges = new THREE.EdgesGeometry(geometry); 
-        
-        // 随机颜色材质
         const color = boxColors[Math.floor(Math.random() * boxColors.length)];
-        const material = new THREE.LineBasicMaterial({ 
+
+        // 1. 创建半透明实心内部 (增加体积感)
+        const solidMaterial = new THREE.MeshBasicMaterial({
             color: color,
             transparent: true,
-            opacity: 0.5, 
+            opacity: 0.15, // 稍微有点颜色，不至于太空
+            blending: THREE.AdditiveBlending, // 叠加发光效果
+            side: THREE.DoubleSide
+        });
+        const solidBox = new THREE.Mesh(geometry, solidMaterial);
+
+        // 2. 创建高亮线框 (保持轮廓清晰)
+        const edges = new THREE.EdgesGeometry(geometry); 
+        const lineMaterial = new THREE.LineBasicMaterial({ 
+            color: color,
+            transparent: true,
+            opacity: 0.8, 
             linewidth: 1 
         });
+        const wireframe = new THREE.LineSegments(edges, lineMaterial);
+        solidBox.add(wireframe); // 把线框作为子对象加到实心盒子上
 
-        const box = new THREE.LineSegments(edges, material);
-
-        // 随机位置 (围绕树底分布)
+        // 随机位置
         const angle = Math.random() * Math.PI * 2; 
-        const radius = 5 + Math.random() * 7; // 距离树干中心的半径范围
+        const radius = 5 + Math.random() * 7; 
         
-        box.position.x = Math.cos(angle) * radius;
-        box.position.z = Math.sin(angle) * radius;
-        box.position.y = -10 + (h / 2); // 确保盒子坐在网格上
+        solidBox.position.x = Math.cos(angle) * radius;
+        solidBox.position.z = Math.sin(angle) * radius;
+        solidBox.position.y = -10 + (h / 2); 
 
         // 随机旋转
-        box.rotation.y = Math.random() * Math.PI;
+        solidBox.rotation.y = Math.random() * Math.PI;
 
-        // 🎀 十字丝带效果
+        // 🎀 丝带也改成稍微实心一点的带子（用平面模拟）
+        // 为了简单且不增加几何负担，这里依旧保留线框丝带，但稍微加亮
         const ribbonGeo = new THREE.BufferGeometry().setFromPoints([
             new THREE.Vector3(-w/2, h/2, 0), new THREE.Vector3(w/2, h/2, 0),
             new THREE.Vector3(0, h/2, -d/2), new THREE.Vector3(0, h/2, d/2),
@@ -366,11 +376,12 @@
             new THREE.Vector3(0, h/2, d/2), new THREE.Vector3(0, -h/2, d/2),
             new THREE.Vector3(0, h/2, -d/2), new THREE.Vector3(0, -h/2, -d/2)
         ]);
-        const ribbon = new THREE.LineSegments(ribbonGeo, material);
+        const ribbonMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 });
+        const ribbon = new THREE.LineSegments(ribbonGeo, ribbonMaterial);
         ribbon.scale.set(1.02, 1.02, 1.02); 
-        box.add(ribbon);
+        solidBox.add(ribbon);
 
-        boxGroup.add(box);
+        boxGroup.add(solidBox);
     }
 
 
