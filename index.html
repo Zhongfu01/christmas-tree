@@ -2,8 +2,8 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>圣诞快乐</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>3D 粒子圣诞树 (手机完美适配版)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet">
@@ -12,6 +12,7 @@
         body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Segoe UI', sans-serif; }
         #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
         
+        /* --- Merry Christmas 标题 (电脑默认样式) --- */
         #main-title {
             position: absolute;
             top: 35vh;
@@ -20,7 +21,7 @@
             opacity: 0;
             margin: 0;
             font-family: 'Parisienne', cursive; 
-            font-size: 6rem; 
+            font-size: 6rem; /* 电脑上大字体 */
             color: #d4af37; 
             text-shadow: 0 0 30px rgba(212, 175, 55, 0.8), 0 0 60px rgba(212, 175, 55, 0.4), 2px 2px 4px rgba(0,0,0,0.8);
             z-index: 20;
@@ -34,6 +35,7 @@
             transform: translateX(-50%) scale(1); 
         }
 
+        /* --- UI 界面 (电脑默认样式) --- */
         #ui-panel {
             position: absolute;
             top: 20px;
@@ -76,6 +78,7 @@
         .dot.active { background: #00ff00; box-shadow: 0 0 10px #00ff00; }
         .dot.scatter { background: #ff4d4d; box-shadow: 0 0 10px #ff4d4d; }
 
+        /* --- 视频预览 (电脑默认样式) --- */
         #input_video {
             position: absolute;
             bottom: 20px;
@@ -97,6 +100,43 @@
             font-size: 24px;
             z-index: 100;
             pointer-events: none;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* ========================================= */
+        /* --- 📱 手机端适配 (关键修改) --- */
+        /* ========================================= */
+        @media screen and (max-width: 768px) {
+            /* 1. 字体变小，防止溢出 */
+            #main-title {
+                font-size: 3.5rem; /* 缩小一半左右 */
+                width: 90%; /* 限制宽度 */
+                white-space: normal; /* 如果真的太长，允许换行 */
+                text-align: center;
+            }
+
+            /* 2. 隐藏摄像头画面 (保持后台运行但不显示) */
+            #input_video {
+                display: none; 
+            }
+
+            /* 3. UI 面板移动到屏幕底部，且居中 */
+            #ui-panel {
+                top: auto;        /* 取消顶部定位 */
+                bottom: 30px;     /* 放在底部 */
+                right: auto;      /* 取消右侧定位 */
+                left: 50%;        /* 水平居中 */
+                transform: translateX(-50%);
+                width: 80%;       /* 宽度占屏幕80% */
+                padding: 15px;    /* 稍微减小内边距 */
+                text-align: center; /* 文字居中 */
+            }
+
+            /* 让状态指示器在手机上也居中 */
+            .status-indicator {
+                justify-content: center;
+            }
         }
     </style>
     
@@ -106,7 +146,7 @@
 </head>
 <body>
 
-    <div id="loading">正在初始化视觉引擎...</div>
+    <div id="loading">正在初始化视觉引擎...<br><span style="font-size:14px; opacity:0.7">请允许摄像头权限以开启互动</span></div>
 
     <h1 id="main-title">Merry Christmas</h1>
 
@@ -122,7 +162,7 @@
         
         <p style="font-size: 11px; color: #666; margin-top: 15px; line-height: 1.6;">
             **未检测/放松: 聚合**<br>
-            **🖐 张开: 惊喜时刻!**
+            **🖐 用力张开: 惊喜时刻!**
         </p>
     </div>
 
@@ -142,11 +182,9 @@
     renderer.setPixelRatio(window.devicePixelRatio);
     document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-    // ==================================================================================
-    // --- 核心修改：双粒子系统 (数量已削减) ---
-    // ==================================================================================
-
-    // ---------------- System 1: 树叶/背景粒子 (从 28000 减至 12000) ----------------
+    // --- 2. 粒子系统 (双系统：叶子 + 装饰) ---
+    
+    // System 1: 树叶 (12000)
     const foliageCount = 12000; 
     const foliageGeo = new THREE.BufferGeometry();
     const foliagePos = new Float32Array(foliageCount * 3);
@@ -192,7 +230,7 @@
     scene.add(foliageParticles);
 
 
-    // ---------------- System 2: 装饰物粒子 (从 2500 减至 800) ----------------
+    // System 2: 装饰物 (800)
     const ornamentCount = 800; 
     const ornamentGeo = new THREE.BufferGeometry();
     const ornamentPos = new Float32Array(ornamentCount * 3);
