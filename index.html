@@ -63,8 +63,9 @@
             width: 100%; text-align: center;
         }
 
+        /* 手机适配 */
         @media screen and (max-width: 768px) {
-            #main-title { font-size: 12vw; padding: 0 10px; width: 100%; text-align: center; box-sizing: border-box; }
+            #main-title { font-size: 9vw; letter-spacing: 0.2rem; padding: 0 10px; width: 100%; text-align: center; box-sizing: border-box; }
             #input_video { display: none; }
             #ui-panel { top: 15px; right: 15px; width: 160px; padding: 12px; }
             h2 { font-size: 12px; } #hand-status { font-size: 10px; } #ui-panel p { font-size: 10px !important; }
@@ -97,12 +98,13 @@
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x050505, 0.002);
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    // 初始相机 Y 设为 0，保证画面居中
     camera.position.z = 30; camera.position.y = 0;
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+    const isMobile = window.innerWidth < 768;
 
     // --- 2. 粒子系统 ---
     // 树叶
@@ -162,7 +164,7 @@
     }));
     scene.add(ornamentParticles);
 
-    // --- ⭐ 五角星 (荧光发光效果) ---
+    // --- ⭐ 五角星 ---
     const starShape = new THREE.Shape();
     const outerRadius = 0.3; const innerRadius = 0.15; const points = 5; 
     for (let i = 0; i < points * 2; i++) {
@@ -197,8 +199,8 @@
     gridHelper.material.opacity = 0.2; gridHelper.material.transparent = true;
     scene.add(gridHelper);
 
-    // --- ❄️ 雪花系统 ---
-    const snowCount = 1500;
+    // --- ❄️ 雪花系统 (修正版) ---
+    const snowCount = isMobile ? 3500 : 1500;
     const snowGeo = new THREE.BufferGeometry();
     const snowPos = new Float32Array(snowCount * 3);
     const snowVelocity = new Float32Array(snowCount); 
@@ -211,35 +213,31 @@
     }
     snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
     
+    const snowSize = isMobile ? 0.03 : 0.12;
     const snowMaterial = new THREE.PointsMaterial({
-        color: 0xffffff, size: 0.12, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false
+        color: 0xffffff, size: snowSize, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false
     });
     const snowParticles = new THREE.Points(snowGeo, snowMaterial);
     scene.add(snowParticles);
 
-    // --- 🎉 纸片礼花系统 (替代爱心) ---
-    // 使用简单的平面几何体代替复杂的爱心形状
-    const confettiGeo = new THREE.PlaneGeometry(0.4, 0.4); // 定义一个小正方形纸片
-    const confettiMat = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide }); // 保持红色
+    // --- 🎉 纸片礼花系统 (朋友版) ---
+    const confettiGeo = new THREE.PlaneGeometry(0.4, 0.4); 
+    const confettiMat = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide });
     const confetti = [];
     const confettiGroup = new THREE.Group();
     scene.add(confettiGroup);
 
-    for(let i=0; i<50; i++) { // 生成50片纸片
+    for(let i=0; i<50; i++) { 
          const mesh = new THREE.Mesh(confettiGeo, confettiMat);
-         // 随机分布在树内部
          const h = Math.random() * 20;
          const radius = (20 - h) * 0.4 * Math.random();
          const angle = Math.random() * Math.PI * 2;
          const home = new THREE.Vector3(Math.cos(angle)*radius, h-10, Math.sin(angle)*radius);
-         // 炸开的目标位置
          const target = new THREE.Vector3((Math.random()-0.5)*70, (Math.random()-0.5)*70, (Math.random()-0.5)*70);
          mesh.position.copy(home);
-         mesh.scale.set(0,0,0); // 初始不可见
-         // 随机初始旋转
+         mesh.scale.set(0,0,0); 
          mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
          confettiGroup.add(mesh);
-         // 增加旋转速度，让纸片飘动更混乱
          confetti.push({mesh, home, target, rotSpeedX: (Math.random()-0.5)*0.3, rotSpeedY: (Math.random()-0.5)*0.3, rotSpeedZ: (Math.random()-0.5)*0.3});
     }
 
@@ -274,7 +272,6 @@
         ribbon.scale.set(1.02, 1.02, 1.02); 
         solidBox.add(ribbon);
 
-        // 礼物位置
         const angle = i * angleSlice + (Math.random() - 0.5) * 0.5;
         const radius = 9 + Math.random() * 3;
         const homePos = new THREE.Vector3(Math.cos(angle)*radius, -10 + h/2, Math.sin(angle)*radius);
@@ -285,33 +282,26 @@
         solidBox.rotation.y = initialYRot;
         giftGroup.add(solidBox);
 
-        // --- 🎅 在第一个礼物上添加圣诞帽 ---
         if (i === 0) {
             const hatGroup = new THREE.Group();
-            // 红色圆锥帽身
             const coneGeo = new THREE.ConeGeometry(0.35, 0.7, 16);
             coneGeo.translate(0, 0.35, 0); 
             const coneMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
             const cone = new THREE.Mesh(coneGeo, coneMat);
             hatGroup.add(cone);
-            // 白色帽檐光环
             const brimGeo = new THREE.TorusGeometry(0.35, 0.1, 16, 32);
             const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
             const brim = new THREE.Mesh(brimGeo, whiteMat);
             brim.rotation.x = Math.PI / 2;
             hatGroup.add(brim);
-            // 白色毛球
             const ballGeo = new THREE.SphereGeometry(0.12, 16, 16);
             const ball = new THREE.Mesh(ballGeo, whiteMat);
             ball.position.set(0, 0.7, 0);
             hatGroup.add(ball);
-
-            // 放置在盒子顶部并倾斜
             hatGroup.position.y = h / 2;
             hatGroup.rotation.z = -0.2; 
             solidBox.add(hatGroup);
         }
-        // (已移除拐杖糖的代码块)
         
         gifts.push({ 
             mesh: solidBox, home: homePos, target: targetPos, initialYRot: initialYRot,
@@ -325,13 +315,11 @@
     scene.add(meteorGroup);
     meteorGroup.visible = false; 
 
-    // 流星头 (大尺寸)
     const meteorHeadGeo = new THREE.SphereGeometry(1.2, 16, 16);
     const meteorMat = new THREE.MeshBasicMaterial({ color: 0xffffff, blending: THREE.AdditiveBlending });
     const meteorHead = new THREE.Mesh(meteorHeadGeo, meteorMat);
     meteorGroup.add(meteorHead);
 
-    // 流星尾 (大尺寸)
     const meteorTailGeo = new THREE.CylinderGeometry(1.5, 0, 25, 16); 
     meteorTailGeo.rotateX(Math.PI / 2); 
     meteorTailGeo.translate(0, 0, -12.5); 
@@ -341,13 +329,10 @@
 
     let meteorActive = false;
     let lastMeteorLaunchTime = 0;
-    // 固定间隔: 5 秒 (5000毫秒)
     const nextMeteorDelay = 5000; 
     const meteorStartPos = new THREE.Vector3();
     const meteorEndPos = new THREE.Vector3();
-    // 飞行时间: 1 秒
     const meteorDuration = 1000; 
-
 
     // --- 3. 交互 ---
     let gestureState = 'GATHER'; let explosionFactor = 0; 
@@ -396,7 +381,6 @@
         const slowRot = time * 0.1;
         foliageParticles.rotation.y = slowRot; ornamentParticles.rotation.y = slowRot; starGroup.rotation.y = slowRot;
         
-        // 更新雪花位置
         const snowP = snowParticles.geometry.attributes.position.array;
         for(let i=0; i<snowCount; i++) {
             snowP[i*3+1] -= snowVelocity[i];
@@ -409,30 +393,17 @@
         }
         snowParticles.geometry.attributes.position.needsUpdate = true;
 
-        // --- 更新流星动画 ---
         if (!meteorActive && now - lastMeteorLaunchTime > nextMeteorDelay) {
-            // 发射流星
             meteorActive = true;
             lastMeteorLaunchTime = now;
-            // nextMeteorDelay 现在是固定常量 5000ms
-
-            // 1. 强制从左往右: 起点 X 为负，终点 X 为正
-            // 2. 更远一点: Z 轴坐标设置得更小 (负得更多, 例如 -250 到 -350)
-            // 3. 跨越屏幕: 大幅增加 X 轴的范围 (-400 到 +400)
-            // 4. 提高高度: 增加 startY 和 endY 的值
-
-            // 起点: 左侧远方更高空
             const startX = -(400 + Math.random() * 100); 
-            const startY = 150 + Math.random() * 100;    // 高度提升到 150-250
-            const startZ = -(250 + Math.random() * 150); // 深度
+            const startY = 150 + Math.random() * 100;    
+            const startZ = -(250 + Math.random() * 150); 
             meteorStartPos.set(startX, startY, startZ);
-
-            // 终点: 右侧远方较高处
             const endX = (400 + Math.random() * 100);
-            const endY = 50 + Math.random() * 50;      // 终点高度提升到 50-100
+            const endY = 50 + Math.random() * 50;      
             const endZ = startZ + (Math.random() - 0.5) * 50; 
             meteorEndPos.set(endX, endY, endZ);
-
             meteorGroup.position.copy(meteorStartPos);
             meteorGroup.lookAt(meteorEndPos); 
             meteorGroup.visible = true;
@@ -449,7 +420,6 @@
             }
         }
 
-
         let targetFactor = (gestureState === 'SCATTER') ? 1 : 0;
         explosionFactor += (targetFactor - explosionFactor) * 0.05;
 
@@ -461,13 +431,10 @@
         const currentScale = 1.2 * (1 - explosionFactor * 0.3); 
         starGroup.scale.set(currentScale, currentScale, currentScale);
 
-        // 更新纸片礼花动画 (替代爱心)
         confetti.forEach(item => {
             item.mesh.position.lerpVectors(item.home, item.target, explosionFactor);
-            // 炸开时变大，聚合时变小消失
-            const s = explosionFactor * 1.0; // 稍微大一点
+            const s = explosionFactor * 1.0; 
             item.mesh.scale.set(s, s, s);
-            // 旋转纸片效果 (增加Z轴旋转使其更混乱自然)
             if (explosionFactor > 0.01) {
                 item.mesh.rotation.x += item.rotSpeedX;
                 item.mesh.rotation.y += item.rotSpeedY;
@@ -475,8 +442,6 @@
             }
         });
 
-
-        // 礼物盒动画
         giftGroup.rotation.y = (explosionFactor < 0.5) ? slowRot : giftGroup.rotation.y;
         gifts.forEach(gift => {
             gift.mesh.position.lerpVectors(gift.home, gift.target, explosionFactor);
@@ -493,7 +458,6 @@
     }
 
     let mouseX = 0; let mouseY = 0;
-    // 鼠标跟随逻辑
     document.addEventListener('mousemove', (e) => { mouseX = (e.clientX - window.innerWidth / 2) * 0.01; mouseY = (e.clientY - window.innerHeight / 2) * 0.01; camera.position.x += (mouseX - camera.position.x) * 0.05; camera.position.y += (-mouseY * 5 - camera.position.y) * 0.05; camera.lookAt(0, 0, 0); });
     window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
     animate();
