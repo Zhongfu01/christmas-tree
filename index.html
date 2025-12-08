@@ -46,8 +46,8 @@
         }
         h2 { margin: 0 0 5px 0; font-size: 18px; color: #d4af37; text-transform: uppercase; letter-spacing: 1px; }
         .status-indicator { display: flex; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
-        #hand-status { font-weight: bold; margin-left: 10px; font-size: 14px; color: #d4af37; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; background: #d4af37; transition: background 0.3s; }
+        #hand-status { font-weight: bold; margin-left: 10px; font-size: 14px; color: #d4af37; white-space: nowrap; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #d4af37; transition: background 0.3s; flex-shrink: 0; }
         .dot.active { background: #00ff00; box-shadow: 0 0 10px #00ff00; }
         .dot.scatter { background: #ff4d4d; box-shadow: 0 0 10px #ff4d4d; }
 
@@ -63,12 +63,22 @@
             width: 100%; text-align: center;
         }
 
-        /* 手机适配 */
+        /* 手机适配 (修复面板过大问题) */
         @media screen and (max-width: 768px) {
             #main-title { font-size: 9vw; letter-spacing: 0.2rem; padding: 0 10px; width: 100%; text-align: center; box-sizing: border-box; }
             #input_video { display: none; }
-            #ui-panel { top: 15px; right: 15px; width: 160px; padding: 12px; }
-            h2 { font-size: 12px; } #hand-status { font-size: 10px; } #ui-panel p { font-size: 10px !important; }
+            
+            /* 面板修复 */
+            #ui-panel { 
+                top: 15px; right: 15px; 
+                width: auto; 
+                min-width: 110px;
+                padding: 10px 12px; 
+            }
+            h2 { font-size: 11px; margin-bottom: 2px; } 
+            .status-indicator { margin-top: 8px; padding-top: 8px; }
+            #hand-status { font-size: 10px; margin-left: 6px; } 
+            #ui-panel p { font-size: 9px !important; margin-top: 8px; line-height: 1.4; }
         }
     </style>
     
@@ -199,7 +209,7 @@
     gridHelper.material.opacity = 0.2; gridHelper.material.transparent = true;
     scene.add(gridHelper);
 
-    // --- ❄️ 雪花系统 (修正版) ---
+    // --- ❄️ 雪花系统 (位置优化: 更多在树前) ---
     const snowCount = isMobile ? 3500 : 1500;
     const snowGeo = new THREE.BufferGeometry();
     const snowPos = new Float32Array(snowCount * 3);
@@ -208,7 +218,10 @@
     for (let i = 0; i < snowCount; i++) {
         snowPos[i * 3] = (Math.random() - 0.5) * 100;       
         snowPos[i * 3 + 1] = (Math.random() - 0.5) * 60;   
-        snowPos[i * 3 + 2] = (Math.random() - 0.5) * 100; 
+        
+        // Z轴优化：前移
+        snowPos[i * 3 + 2] = (Math.random() * 45) - 10; 
+
         snowVelocity[i] = 0.02 + Math.random() * 0.05;    
     }
     snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
@@ -388,7 +401,8 @@
             if (snowP[i*3+1] < -20) {
                 snowP[i*3+1] = 30; 
                 snowP[i*3] = (Math.random() - 0.5) * 100; 
-                snowP[i*3+2] = (Math.random() - 0.5) * 100; 
+                // 重置Z轴
+                snowP[i*3+2] = (Math.random() * 45) - 10; 
             }
         }
         snowParticles.geometry.attributes.position.needsUpdate = true;
