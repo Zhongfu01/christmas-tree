@@ -12,7 +12,7 @@
         body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Segoe UI', sans-serif; }
         #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        /* --- 标题 --- */
+        /* 标题 */
         #main-title {
             position: absolute;
             top: 35vh;
@@ -30,90 +30,44 @@
             white-space: nowrap;
             transition: all 1.5s cubic-bezier(0.25, 1, 0.5, 1);
         }
+        #main-title.visible { opacity: 1; transform: translateX(-50%) scale(1); }
 
-        #main-title.visible {
-            opacity: 1; 
-            transform: translateX(-50%) scale(1); 
-        }
-
-        /* --- UI 面板 --- */
+        /* UI 面板 */
         #ui-panel {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 220px;
+            top: 20px; right: 20px; width: 220px;
             background: rgba(20, 20, 20, 0.85);
             backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 15px;
+            padding: 20px; border-radius: 15px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            z-index: 10;
+            color: white; z-index: 10;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             transition: all 0.3s ease;
         }
-        
         h2 { margin: 0 0 5px 0; font-size: 18px; color: #d4af37; text-transform: uppercase; letter-spacing: 1px; }
-        
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        #hand-status {
-            font-weight: bold;
-            margin-left: 10px;
-            font-size: 14px;
-            color: #d4af37;
-        }
-
-        .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #d4af37;
-            transition: background 0.3s;
-        }
+        .status-indicator { display: flex; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
+        #hand-status { font-weight: bold; margin-left: 10px; font-size: 14px; color: #d4af37; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #d4af37; transition: background 0.3s; }
         .dot.active { background: #00ff00; box-shadow: 0 0 10px #00ff00; }
         .dot.scatter { background: #ff4d4d; box-shadow: 0 0 10px #ff4d4d; }
 
-        /* --- 视频 --- */
+        /* 视频 */
         #input_video {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 160px;
-            height: 120px;
-            border-radius: 8px;
-            z-index: 10;
-            opacity: 0.7;
-            transform: scaleX(-1);
-            border: 2px solid #333;
+            position: absolute; bottom: 20px; left: 20px;
+            width: 160px; height: 120px; border-radius: 8px;
+            z-index: 10; opacity: 0.7; transform: scaleX(-1); border: 2px solid #333;
         }
-        
         #loading {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            color: #d4af37;
-            font-size: 24px;
-            z-index: 100;
-            pointer-events: none;
-            width: 100%;
-            text-align: center;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: #d4af37; font-size: 24px; z-index: 100; pointer-events: none;
+            width: 100%; text-align: center;
         }
 
-        /* 手机适配 */
         @media screen and (max-width: 768px) {
             #main-title { font-size: 12vw; padding: 0 10px; width: 100%; text-align: center; box-sizing: border-box; }
             #input_video { display: none; }
             #ui-panel { top: 15px; right: 15px; width: 160px; padding: 12px; }
-            h2 { font-size: 12px; }
-            #hand-status { font-size: 10px; }
-            #ui-panel p { font-size: 10px !important; }
+            h2 { font-size: 12px; } #hand-status { font-size: 10px; } #ui-panel p { font-size: 10px !important; }
         }
     </style>
     
@@ -124,10 +78,8 @@
 <body>
 
     <div id="loading">正在初始化...<br><span style="font-size:14px; opacity:0.7">请允许摄像头权限</span></div>
-
     <h1 id="main-title">Merry Christmas</h1>
     <video id="input_video" playsinline></video>
-
     <div id="ui-panel">
         <h2>🎄 控制面板</h2>
         <div class="status-indicator">
@@ -135,82 +87,56 @@
             <span id="hand-status">状态：显示圣诞树</span>
         </div>
         <p style="font-size: 11px; color: #ddd; margin-top: 15px; line-height: 1.6;">
-            手势控制：<br>✊ 握拳 = 聚合(树+礼物)<br>🖐 张手 = 爆炸(全场乱飞)
+            手势控制：<br>✊ 握拳 = 聚合<br>🖐 张手 = 悬浮
         </p>
     </div>
-
     <div id="canvas-container"></div>
 
 <script>
-    // --- 1. Three.js 场景初始化 ---
+    // --- 1. 初始化 ---
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x050505, 0.002);
-
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 30;
-    camera.position.y = 5;
-
+    // 初始相机 Y 设为 0，保证画面居中
+    camera.position.z = 30; camera.position.y = 0;
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.outputEncoding = THREE.sRGBEncoding; // 开启更好的颜色显示
     document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-    // --- 💡 灯光系统 (为了让礼物盒有质感) ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); // 环境光
-    scene.add(ambientLight);
-
-    const dirLight = new THREE.DirectionalLight(0xffd700, 0.8); // 金色主光
-    dirLight.position.set(10, 20, 10);
-    scene.add(dirLight);
-    
-    const pointLight = new THREE.PointLight(0xff0000, 0.5, 50); // 红色补光，增加氛围
-    pointLight.position.set(-10, 10, -10);
-    scene.add(pointLight);
-
-
-    // --- 2. 粒子系统 (树叶 + 装饰) ---
-    // System 1: 树叶
-    const foliageCount = 12000; 
+    // --- 2. 粒子系统 ---
+    // 树叶
+    const foliageCount = 16000; 
     const foliageGeo = new THREE.BufferGeometry();
     const foliagePos = new Float32Array(foliageCount * 3);
     const foliageCols = new Float32Array(foliageCount * 3);
     const foliageTarget = new Float32Array(foliageCount * 3); 
     const foliageRandom = new Float32Array(foliageCount * 3); 
-
-    const foliagePalette = [
-        new THREE.Color("#0f5c34"), new THREE.Color("#0f5c34"), new THREE.Color("#146b3a"),
-        new THREE.Color("#0a4a2a"), new THREE.Color("#ffffff")
-    ];
+    const foliagePalette = [ new THREE.Color("#0f5c34"), new THREE.Color("#0f5c34"), new THREE.Color("#146b3a"), new THREE.Color("#0a4a2a"), new THREE.Color("#1a5e20") ];
 
     for (let i = 0; i < foliageCount; i++) {
-        for(let j = 0; j < 3; j++) {
-            foliagePos[i * 3 + j] = (Math.random() - 0.5) * 100;
-            foliageRandom[i * 3 + j] = (Math.random() - 0.5) * 60;
-        }
+        for(let j = 0; j < 3; j++) { foliagePos[i*3+j] = (Math.random()-0.5)*100; foliageRandom[i*3+j] = (Math.random()-0.5)*60; }
         const color = foliagePalette[Math.floor(Math.random() * foliagePalette.length)];
-        foliageCols[i * 3] = color.r; foliageCols[i * 3 + 1] = color.g; foliageCols[i * 3 + 2] = color.b;
-
-        const h = Math.random() * 20; 
-        const radius = (20 - h) * 0.4 * Math.random(); 
-        const angle = Math.random() * Math.PI * 2;
+        foliageCols[i*3] = color.r; foliageCols[i*3+1] = color.g; foliageCols[i*3+2] = color.b;
         
-        foliageTarget[i * 3] = Math.cos(angle) * radius;
-        foliageTarget[i * 3 + 1] = h - 10; 
-        foliageTarget[i * 3 + 2] = Math.sin(angle) * radius;
-    }
+        const h = Math.random() * 20; 
+        if (h > 18.5 && Math.random() > 0.5) { i--; continue; }
+        const maxRadius = (20 - h) * 0.4;
+        const radius = maxRadius * (Math.random() * 0.9 + 0.1); 
 
+        const angle = Math.random() * Math.PI * 2;
+        foliageTarget[i*3] = Math.cos(angle)*radius; foliageTarget[i*3+1] = h-10; foliageTarget[i*3+2] = Math.sin(angle)*radius;
+    }
     foliageGeo.setAttribute('position', new THREE.BufferAttribute(foliagePos, 3));
     foliageGeo.setAttribute('color', new THREE.BufferAttribute(foliageCols, 3));
-
     const foliageMaterial = new THREE.PointsMaterial({
         size: 0.12, vertexColors: true, blending: THREE.AdditiveBlending,
-        depthWrite: false, transparent: true, opacity: 0.6
+        depthWrite: false, transparent: true, opacity: 0.25 
     });
     const foliageParticles = new THREE.Points(foliageGeo, foliageMaterial);
     scene.add(foliageParticles);
 
-    // System 2: 装饰球
+    // 装饰
     const ornamentCount = 800; 
     const ornamentGeo = new THREE.BufferGeometry();
     const ornamentPos = new Float32Array(ornamentCount * 3);
@@ -220,21 +146,13 @@
     const ornamentPalette = [ new THREE.Color("#d4af37"), new THREE.Color("#c41e3a") ];
 
     for (let i = 0; i < ornamentCount; i++) {
-        for(let j = 0; j < 3; j++) {
-            ornamentPos[i * 3 + j] = (Math.random() - 0.5) * 100;
-            ornamentRandom[i * 3 + j] = (Math.random() - 0.5) * 70; 
-        }
+        for(let j = 0; j < 3; j++) { ornamentPos[i*3+j] = (Math.random()-0.5)*100; ornamentRandom[i*3+j] = (Math.random()-0.5)*70; }
         const color = ornamentPalette[Math.floor(Math.random() * ornamentPalette.length)];
-        ornamentCols[i * 3] = color.r; ornamentCols[i * 3 + 1] = color.g; ornamentCols[i * 3 + 2] = color.b;
-
+        ornamentCols[i*3] = color.r; ornamentCols[i*3+1] = color.g; ornamentCols[i*3+2] = color.b;
         const h = Math.random() * 20; 
-        const baseRadius = (20 - h) * 0.4;
-        const radius = baseRadius * (0.9 + Math.random() * 0.1); 
+        const radius = (20 - h) * 0.4 * (0.9 + Math.random()*0.1); 
         const angle = Math.random() * Math.PI * 2;
-        
-        ornamentTarget[i * 3] = Math.cos(angle) * radius;
-        ornamentTarget[i * 3 + 1] = h - 10; 
-        ornamentTarget[i * 3 + 2] = Math.sin(angle) * radius;
+        ornamentTarget[i*3] = Math.cos(angle)*radius; ornamentTarget[i*3+1] = h-10; ornamentTarget[i*3+2] = Math.sin(angle)*radius;
     }
     ornamentGeo.setAttribute('position', new THREE.BufferAttribute(ornamentPos, 3));
     ornamentGeo.setAttribute('color', new THREE.BufferAttribute(ornamentCols, 3));
@@ -244,7 +162,7 @@
     }));
     scene.add(ornamentParticles);
 
-    // --- ⭐ 五角星 ---
+    // --- ⭐ 五角星 (荧光发光效果) ---
     const starShape = new THREE.Shape();
     const outerRadius = 0.3; const innerRadius = 0.15; const points = 5; 
     for (let i = 0; i < points * 2; i++) {
@@ -254,138 +172,209 @@
         if (i === 0) starShape.moveTo(x, y); else starShape.lineTo(x, y);
     }
     starShape.closePath();
-    const starGeometry = new THREE.ExtrudeGeometry(starShape, { steps: 1, depth: 0.1, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 3 });
+    const starGeometry = new THREE.ExtrudeGeometry(starShape, { steps: 1, depth: 0.1, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.06, bevelSegments: 12 });
     starGeometry.center(); 
-    const starGroup = new THREE.Mesh(starGeometry, new THREE.MeshBasicMaterial({ color: 0xffd700 }));
-    const starBasePosition = new THREE.Vector3(0, 10, 0);
+    
+    const starCoreMat = new THREE.MeshBasicMaterial({ color: 0xfffff0, transparent: false });
+    const starGroup = new THREE.Mesh(starGeometry, starCoreMat);
+    
+    const starGlowMat = new THREE.MeshBasicMaterial({ 
+        color: 0xffff00, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false 
+    });
+    const starGlow = new THREE.Mesh(starGeometry, starGlowMat);
+    starGlow.scale.set(1.15, 1.15, 1.15); 
+    starGroup.add(starGlow);
+
+    const starBasePosition = new THREE.Vector3(0, 10.5, 0);
     const starScatterVector = new THREE.Vector3((Math.random()-0.5)*30, Math.random()*30+20, (Math.random()-0.5)*30);
     starGroup.position.copy(starBasePosition);
+    starGroup.scale.set(1.2, 1.2, 1.2);
     scene.add(starGroup);
 
-    // --- 🕸️ 地面网格 ---
+    // 地面
     const gridHelper = new THREE.GridHelper(100, 40, 0x444444, 0x111111); 
     gridHelper.position.y = -10; 
-    gridHelper.material.opacity = 0.2; 
-    gridHelper.material.transparent = true;
+    gridHelper.material.opacity = 0.2; gridHelper.material.transparent = true;
     scene.add(gridHelper);
 
+    // --- ❄️ 雪花系统 ---
+    const snowCount = 1500;
+    const snowGeo = new THREE.BufferGeometry();
+    const snowPos = new Float32Array(snowCount * 3);
+    const snowVelocity = new Float32Array(snowCount); 
 
-    // --- 🎁 实体礼物盒系统 (升级版) ---
-    const gifts = []; // 存储礼物对象
+    for (let i = 0; i < snowCount; i++) {
+        snowPos[i * 3] = (Math.random() - 0.5) * 100;       
+        snowPos[i * 3 + 1] = (Math.random() - 0.5) * 60;   
+        snowPos[i * 3 + 2] = (Math.random() - 0.5) * 100; 
+        snowVelocity[i] = 0.02 + Math.random() * 0.05;    
+    }
+    snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
+    
+    const snowMaterial = new THREE.PointsMaterial({
+        color: 0xffffff, size: 0.12, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    const snowParticles = new THREE.Points(snowGeo, snowMaterial);
+    scene.add(snowParticles);
+
+    // --- 🎉 纸片礼花系统 (替代爱心) ---
+    // 使用简单的平面几何体代替复杂的爱心形状
+    const confettiGeo = new THREE.PlaneGeometry(0.4, 0.4); // 定义一个小正方形纸片
+    const confettiMat = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide }); // 保持红色
+    const confetti = [];
+    const confettiGroup = new THREE.Group();
+    scene.add(confettiGroup);
+
+    for(let i=0; i<50; i++) { // 生成50片纸片
+         const mesh = new THREE.Mesh(confettiGeo, confettiMat);
+         // 随机分布在树内部
+         const h = Math.random() * 20;
+         const radius = (20 - h) * 0.4 * Math.random();
+         const angle = Math.random() * Math.PI * 2;
+         const home = new THREE.Vector3(Math.cos(angle)*radius, h-10, Math.sin(angle)*radius);
+         // 炸开的目标位置
+         const target = new THREE.Vector3((Math.random()-0.5)*70, (Math.random()-0.5)*70, (Math.random()-0.5)*70);
+         mesh.position.copy(home);
+         mesh.scale.set(0,0,0); // 初始不可见
+         // 随机初始旋转
+         mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+         confettiGroup.add(mesh);
+         // 增加旋转速度，让纸片飘动更混乱
+         confetti.push({mesh, home, target, rotSpeedX: (Math.random()-0.5)*0.3, rotSpeedY: (Math.random()-0.5)*0.3, rotSpeedZ: (Math.random()-0.5)*0.3});
+    }
+
+
+    // --- 🎁 礼物系统 ---
+    const gifts = []; 
     const giftGroup = new THREE.Group();
     scene.add(giftGroup);
+    const boxColors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff]; 
+    const giftCount = 12;
+    const angleSlice = (Math.PI * 2) / giftCount;
 
-    const boxPalette = [0xcc231e, 0x0f5c34, 0x1a468c, 0xffffff]; // 红、绿、蓝、白
-    const ribbonMaterial = new THREE.MeshPhongMaterial({ color: 0xffd700, shininess: 100, specular: 0xffffff }); // 金色丝带
+    for(let i=0; i<giftCount; i++) {
+        const w = 1.2 + Math.random() * 1.5; const h = 1.2 + Math.random() * 1.5; const d = 1.2 + Math.random() * 1.5; 
+        const geometry = new THREE.BoxGeometry(w, h, d);
+        const color = boxColors[Math.floor(Math.random() * boxColors.length)];
 
-    for(let i=0; i<12; i++) {
-        const w = 1.0 + Math.random() * 1.2;
-        const h = 0.8 + Math.random() * 1.0;
-        const d = 1.0 + Math.random() * 1.2;
-        
-        // 1. 盒子本体 (MeshPhongMaterial 受光照影响，有质感)
-        const boxGeo = new THREE.BoxGeometry(w, h, d);
-        const boxColor = boxPalette[Math.floor(Math.random() * boxPalette.length)];
-        const boxMat = new THREE.MeshPhongMaterial({ 
-            color: boxColor, 
-            shininess: 30,
-            specular: 0x111111
-        });
-        const mesh = new THREE.Mesh(boxGeo, boxMat);
+        const solidMaterial = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, side: THREE.FrontSide });
+        const solidBox = new THREE.Mesh(geometry, solidMaterial);
+        const edges = new THREE.EdgesGeometry(geometry); 
+        const lineMaterial = new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: 0.8, linewidth: 1 });
+        const wireframe = new THREE.LineSegments(edges, lineMaterial);
+        solidBox.add(wireframe); 
 
-        // 2. 十字丝带 (实体模型)
-        const ribbonWidth = w * 0.15;
-        // 竖向丝带
-        const rib1Geo = new THREE.BoxGeometry(ribbonWidth, h + 0.02, d + 0.02);
-        const rib1 = new THREE.Mesh(rib1Geo, ribbonMaterial);
-        // 横向丝带
-        const rib2Geo = new THREE.BoxGeometry(w + 0.02, h + 0.02, ribbonWidth);
-        const rib2 = new THREE.Mesh(rib2Geo, ribbonMaterial);
-        
-        mesh.add(rib1);
-        mesh.add(rib2);
+        const ribbonGeo = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(-w/2, h/2, 0), new THREE.Vector3(w/2, h/2, 0), new THREE.Vector3(0, h/2, -d/2), new THREE.Vector3(0, h/2, d/2),
+            new THREE.Vector3(-w/2, -h/2, 0), new THREE.Vector3(w/2, -h/2, 0), new THREE.Vector3(0, -h/2, -d/2), new THREE.Vector3(0, -h/2, d/2),
+            new THREE.Vector3(-w/2, h/2, 0), new THREE.Vector3(-w/2, -h/2, 0), new THREE.Vector3(w/2, h/2, 0), new THREE.Vector3(w/2, -h/2, 0),
+            new THREE.Vector3(0, h/2, d/2), new THREE.Vector3(0, -h/2, d/2), new THREE.Vector3(0, h/2, -d/2), new THREE.Vector3(0, -h/2, -d/2)
+        ]);
+        const ribbon = new THREE.LineSegments(ribbonGeo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
+        ribbon.scale.set(1.02, 1.02, 1.02); 
+        solidBox.add(ribbon);
 
-        // 3. 计算位置
-        // 树下位置 (Home)
-        const angle = Math.random() * Math.PI * 2;
-        const radius = 5 + Math.random() * 6;
+        // 礼物位置
+        const angle = i * angleSlice + (Math.random() - 0.5) * 0.5;
+        const radius = 9 + Math.random() * 3;
         const homePos = new THREE.Vector3(Math.cos(angle)*radius, -10 + h/2, Math.sin(angle)*radius);
+        const targetPos = new THREE.Vector3((Math.random()-0.5)*150, (Math.random()*40)-5, (Math.random()-0.5)*120);
+
+        solidBox.position.copy(homePos);
+        const initialYRot = Math.random() * Math.PI;
+        solidBox.rotation.y = initialYRot;
+        giftGroup.add(solidBox);
+
+        // --- 🎅 在第一个礼物上添加圣诞帽 ---
+        if (i === 0) {
+            const hatGroup = new THREE.Group();
+            // 红色圆锥帽身
+            const coneGeo = new THREE.ConeGeometry(0.35, 0.7, 16);
+            coneGeo.translate(0, 0.35, 0); 
+            const coneMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const cone = new THREE.Mesh(coneGeo, coneMat);
+            hatGroup.add(cone);
+            // 白色帽檐光环
+            const brimGeo = new THREE.TorusGeometry(0.35, 0.1, 16, 32);
+            const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const brim = new THREE.Mesh(brimGeo, whiteMat);
+            brim.rotation.x = Math.PI / 2;
+            hatGroup.add(brim);
+            // 白色毛球
+            const ballGeo = new THREE.SphereGeometry(0.12, 16, 16);
+            const ball = new THREE.Mesh(ballGeo, whiteMat);
+            ball.position.set(0, 0.7, 0);
+            hatGroup.add(ball);
+
+            // 放置在盒子顶部并倾斜
+            hatGroup.position.y = h / 2;
+            hatGroup.rotation.z = -0.2; 
+            solidBox.add(hatGroup);
+        }
+        // (已移除拐杖糖的代码块)
         
-        // 爆炸位置 (Target) - 飞到空中
-        const targetPos = new THREE.Vector3(
-            (Math.random() - 0.5) * 60,
-            (Math.random() * 30) - 10, // 高度随机
-            (Math.random() - 0.5) * 40
-        );
-
-        // 随机旋转轴
-        const rotationAxis = new THREE.Vector3(Math.random(), Math.random(), Math.random()).normalize();
-
-        mesh.position.copy(homePos);
-        mesh.rotation.y = Math.random() * Math.PI;
-
-        giftGroup.add(mesh);
-
-        gifts.push({
-            mesh: mesh,
-            home: homePos,
-            target: targetPos,
-            axis: rotationAxis,
-            speed: 0.05 + Math.random() * 0.1
+        gifts.push({ 
+            mesh: solidBox, home: homePos, target: targetPos, initialYRot: initialYRot,
+            rotAxis: new THREE.Vector3(Math.random(), Math.random(), Math.random()).normalize(),
+            rotSpeed: 0.005 + Math.random() * 0.01 
         });
     }
 
-    // --- 3. 交互控制 ---
-    let gestureState = 'GATHER'; 
-    let explosionFactor = 0; 
+    // --- 🌠 流星系统 ---
+    const meteorGroup = new THREE.Group();
+    scene.add(meteorGroup);
+    meteorGroup.visible = false; 
+
+    // 流星头 (大尺寸)
+    const meteorHeadGeo = new THREE.SphereGeometry(1.2, 16, 16);
+    const meteorMat = new THREE.MeshBasicMaterial({ color: 0xffffff, blending: THREE.AdditiveBlending });
+    const meteorHead = new THREE.Mesh(meteorHeadGeo, meteorMat);
+    meteorGroup.add(meteorHead);
+
+    // 流星尾 (大尺寸)
+    const meteorTailGeo = new THREE.CylinderGeometry(1.5, 0, 25, 16); 
+    meteorTailGeo.rotateX(Math.PI / 2); 
+    meteorTailGeo.translate(0, 0, -12.5); 
+    const meteorTailMat = new THREE.MeshBasicMaterial({ color: 0xffffff, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.4 });
+    const meteorTail = new THREE.Mesh(meteorTailGeo, meteorTailMat);
+    meteorGroup.add(meteorTail);
+
+    let meteorActive = false;
+    let lastMeteorLaunchTime = 0;
+    // 固定间隔: 5 秒 (5000毫秒)
+    const nextMeteorDelay = 5000; 
+    const meteorStartPos = new THREE.Vector3();
+    const meteorEndPos = new THREE.Vector3();
+    // 飞行时间: 1 秒
+    const meteorDuration = 1000; 
+
+
+    // --- 3. 交互 ---
+    let gestureState = 'GATHER'; let explosionFactor = 0; 
     const videoElement = document.getElementById('input_video');
     const handStatus = document.getElementById('hand-status');
     const statusDot = document.getElementById('status-dot');
     const mainTitle = document.getElementById('main-title');
-
     const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
     hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
     hands.onResults(onResults);
-
-    const cameraUtils = new Camera(videoElement, {
-        onFrame: async () => { await hands.send({image: videoElement}); },
-        width: 320, height: 240
-    });
+    const cameraUtils = new Camera(videoElement, { onFrame: async () => { await hands.send({image: videoElement}); }, width: 320, height: 240 });
     cameraUtils.start();
 
     function onResults(results) {
         document.getElementById('loading').style.display = 'none';
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            const landmarks = results.multiHandLandmarks[0];
-            const wrist = landmarks[0];
-            const tips = [8, 12, 16, 20]; const mcps = [5, 9, 13, 17]; 
-            let foldedFingers = 0;
+            const landmarks = results.multiHandLandmarks[0]; const wrist = landmarks[0];
+            const tips = [8, 12, 16, 20]; const mcps = [5, 9, 13, 17]; let foldedFingers = 0;
             function dist(p1, p2) { return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2)); }
-            for(let i=0; i<4; i++) {
-                if (dist(landmarks[tips[i]], wrist) < dist(landmarks[mcps[i]], wrist) * 1.6) foldedFingers++;
-            }
-            if (foldedFingers >= 3) {
-                gestureState = 'GATHER';
-                statusDot.classList.add('active'); statusDot.classList.remove('scatter');
-                handStatus.innerText = "状态: ✊ 聚合"; handStatus.style.color = "#00ff00";
-                mainTitle.classList.remove('visible');
-            } else {
-                gestureState = 'SCATTER';
-                statusDot.classList.add('scatter'); statusDot.classList.remove('active');
-                handStatus.innerText = "状态: 🖐 扩散"; handStatus.style.color = "#ff4d4d";
-                mainTitle.classList.add('visible');
-            }
-        } else {
-            gestureState = 'GATHER'; 
-            statusDot.classList.remove('active', 'scatter');
-            handStatus.innerText = "默认状态"; handStatus.style.color = "#d4af37";
-            mainTitle.classList.remove('visible');
-        }
+            for(let i=0; i<4; i++) { if (dist(landmarks[tips[i]], wrist) < dist(landmarks[mcps[i]], wrist) * 1.6) foldedFingers++; }
+            if (foldedFingers >= 3) { gestureState = 'GATHER'; statusDot.classList.add('active'); statusDot.classList.remove('scatter'); handStatus.innerText = "状态: ✊ 聚合"; handStatus.style.color = "#00ff00"; mainTitle.classList.remove('visible'); } 
+            else { gestureState = 'SCATTER'; statusDot.classList.add('scatter'); statusDot.classList.remove('active'); handStatus.innerText = "状态: 🖐 悬浮"; handStatus.style.color = "#ff4d4d"; mainTitle.classList.add('visible'); }
+        } else { gestureState = 'GATHER'; statusDot.classList.remove('active', 'scatter'); handStatus.innerText = "默认状态"; handStatus.style.color = "#d4af37"; mainTitle.classList.remove('visible'); }
     }
 
-    // --- 4. 动画循环 ---
+    // --- 4. 动画 ---
     let time = 0;
-
     function updateParticles(geometry, count, currentPos, targetPos, randomPos, factor, timeOffset) {
         for (let i = 0; i < count; i++) {
             const ix = i * 3; const iy = i * 3 + 1; const iz = i * 3 + 2;
@@ -402,64 +391,111 @@
 
     function animate() {
         requestAnimationFrame(animate);
+        const now = Date.now();
         time += 0.01;
-
-        // 全局旋转
         const slowRot = time * 0.1;
-        foliageParticles.rotation.y = slowRot;
-        ornamentParticles.rotation.y = slowRot; 
-        starGroup.rotation.y = time * 0.8;
+        foliageParticles.rotation.y = slowRot; ornamentParticles.rotation.y = slowRot; starGroup.rotation.y = slowRot;
         
-        // 聚合/爆炸 因子平滑过渡
+        // 更新雪花位置
+        const snowP = snowParticles.geometry.attributes.position.array;
+        for(let i=0; i<snowCount; i++) {
+            snowP[i*3+1] -= snowVelocity[i];
+            snowP[i*3] += Math.sin(time + i) * 0.02; 
+            if (snowP[i*3+1] < -20) {
+                snowP[i*3+1] = 30; 
+                snowP[i*3] = (Math.random() - 0.5) * 100; 
+                snowP[i*3+2] = (Math.random() - 0.5) * 100; 
+            }
+        }
+        snowParticles.geometry.attributes.position.needsUpdate = true;
+
+        // --- 更新流星动画 ---
+        if (!meteorActive && now - lastMeteorLaunchTime > nextMeteorDelay) {
+            // 发射流星
+            meteorActive = true;
+            lastMeteorLaunchTime = now;
+            // nextMeteorDelay 现在是固定常量 5000ms
+
+            // 1. 强制从左往右: 起点 X 为负，终点 X 为正
+            // 2. 更远一点: Z 轴坐标设置得更小 (负得更多, 例如 -250 到 -350)
+            // 3. 跨越屏幕: 大幅增加 X 轴的范围 (-400 到 +400)
+            // 4. 提高高度: 增加 startY 和 endY 的值
+
+            // 起点: 左侧远方更高空
+            const startX = -(400 + Math.random() * 100); 
+            const startY = 150 + Math.random() * 100;    // 高度提升到 150-250
+            const startZ = -(250 + Math.random() * 150); // 深度
+            meteorStartPos.set(startX, startY, startZ);
+
+            // 终点: 右侧远方较高处
+            const endX = (400 + Math.random() * 100);
+            const endY = 50 + Math.random() * 50;      // 终点高度提升到 50-100
+            const endZ = startZ + (Math.random() - 0.5) * 50; 
+            meteorEndPos.set(endX, endY, endZ);
+
+            meteorGroup.position.copy(meteorStartPos);
+            meteorGroup.lookAt(meteorEndPos); 
+            meteorGroup.visible = true;
+        }
+
+        if (meteorActive) {
+            const elapsed = now - lastMeteorLaunchTime;
+            const progress = elapsed / meteorDuration;
+            if (progress < 1) {
+                meteorGroup.position.lerpVectors(meteorStartPos, meteorEndPos, progress);
+            } else {
+                meteorActive = false;
+                meteorGroup.visible = false;
+            }
+        }
+
+
         let targetFactor = (gestureState === 'SCATTER') ? 1 : 0;
         explosionFactor += (targetFactor - explosionFactor) * 0.05;
 
-        // 更新树
         updateParticles(foliageGeo, foliageCount, foliagePos, foliageTarget, foliageRandom, explosionFactor, 0.01);
         updateParticles(ornamentGeo, ornamentCount, ornamentPos, ornamentTarget, ornamentRandom, explosionFactor, 0.02);
 
-        // 更新星星
         const starCurrentTarget = starBasePosition.clone().lerp(starBasePosition.clone().add(starScatterVector), explosionFactor);
         starGroup.position.lerp(starCurrentTarget, 0.08);
-        const currentScale = 1.0 * (1 - explosionFactor * 0.3);
+        const currentScale = 1.2 * (1 - explosionFactor * 0.3); 
         starGroup.scale.set(currentScale, currentScale, currentScale);
 
-        // 更新礼物盒 (位置插值 + 旋转)
-        // 礼物整体组也跟着树转，但如果是爆炸状态，就不转组，而是转个别
-        giftGroup.rotation.y = (explosionFactor < 0.5) ? slowRot : giftGroup.rotation.y;
+        // 更新纸片礼花动画 (替代爱心)
+        confetti.forEach(item => {
+            item.mesh.position.lerpVectors(item.home, item.target, explosionFactor);
+            // 炸开时变大，聚合时变小消失
+            const s = explosionFactor * 1.0; // 稍微大一点
+            item.mesh.scale.set(s, s, s);
+            // 旋转纸片效果 (增加Z轴旋转使其更混乱自然)
+            if (explosionFactor > 0.01) {
+                item.mesh.rotation.x += item.rotSpeedX;
+                item.mesh.rotation.y += item.rotSpeedY;
+                item.mesh.rotation.z += item.rotSpeedZ;
+            }
+        });
 
+
+        // 礼物盒动画
+        giftGroup.rotation.y = (explosionFactor < 0.5) ? slowRot : giftGroup.rotation.y;
         gifts.forEach(gift => {
-            // 位置插值：从家到爆炸点
             gift.mesh.position.lerpVectors(gift.home, gift.target, explosionFactor);
-            
-            // 旋转特效：爆炸时疯狂旋转，聚合时慢慢回正
-            if(explosionFactor > 0.1) {
-                gift.mesh.rotateOnAxis(gift.axis, gift.speed);
+            if (explosionFactor > 0.1) {
+                gift.mesh.rotateOnAxis(gift.rotAxis, gift.rotSpeed);
             } else {
-                // 简单的复位逻辑，让它慢慢摆正 (这里简化处理，只让它不疯转)
-                gift.mesh.rotation.x *= 0.95;
-                gift.mesh.rotation.z *= 0.95;
+                gift.mesh.rotation.x = 0;
+                gift.mesh.rotation.z = 0;
+                gift.mesh.rotation.y = gift.initialYRot;
             }
         });
 
         renderer.render(scene, camera);
     }
 
-    // 鼠标/窗口事件
     let mouseX = 0; let mouseY = 0;
-    document.addEventListener('mousemove', (e) => {
-        mouseX = (e.clientX - window.innerWidth / 2) * 0.01;
-        mouseY = (e.clientY - window.innerHeight / 2) * 0.01;
-        camera.position.x += (mouseX - camera.position.x) * 0.05;
-        camera.position.y += (-mouseY + 5 - camera.position.y) * 0.05;
-        camera.lookAt(0, 0, 0);
-    });
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
+    // 鼠标跟随逻辑
+    document.addEventListener('mousemove', (e) => { mouseX = (e.clientX - window.innerWidth / 2) * 0.01; mouseY = (e.clientY - window.innerHeight / 2) * 0.01; camera.position.x += (mouseX - camera.position.x) * 0.05; camera.position.y += (-mouseY * 5 - camera.position.y) * 0.05; camera.lookAt(0, 0, 0); });
+    window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
     animate();
 </script>
 </body>
